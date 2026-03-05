@@ -2,8 +2,11 @@ import { readManifest, Manifest } from '../storage/manifest.js';
 import { readNotes, Note } from '../storage/notes.js';
 import { parseLog, Commit } from '../git/parseLog.js';
 import { calculateHotPaths } from '../git/hotPaths.js';
-import { inferFocus } from '../understanding/inferFocus.js';
+import { inferFocus, inferMilestoneSignals, MilestoneSignal } from '../understanding/inferFocus.js';
 import { generateContextText, ContextData } from '../understanding/contextTemplate.js';
+import { readProgress } from '../storage/progress.js';
+import { readDecisions } from '../storage/decisions.js';
+import { readMilestones } from '../storage/milestones.js';
 
 export interface ProjectContextInput {
   depth?: 'short' | 'normal';
@@ -34,18 +37,28 @@ export async function projectContext(input: ProjectContextInput): Promise<Projec
   
   let recentCommits: Commit[] = [];
   let focus = null;
+  let milestoneSignals: MilestoneSignal[] = [];
 
   if (includeActivity) {
     recentCommits = parseLog(recentCommitsCount, cwd);
     const hotPaths = calculateHotPaths(recentCommits, cwd);
     focus = inferFocus(recentCommits, hotPaths);
+    milestoneSignals = inferMilestoneSignals(recentCommits, hotPaths);
   }
+
+  const progress = readProgress(cwd);
+  const decisions = readDecisions(cwd);
+  const milestones = readMilestones(cwd);
 
   const contextData: ContextData = {
     manifest,
     recentCommits: depth === 'short' ? recentCommits.slice(0, 5) : recentCommits,
     notes,
     focus,
+    milestoneSignals,
+    progress,
+    decisions,
+    milestones,
   };
 
   const contextText = generateContextText(contextData);
