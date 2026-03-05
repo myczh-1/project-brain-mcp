@@ -11,6 +11,7 @@ import { projectInit } from './tools/projectInit.js';
 import { projectRecentActivity } from './tools/recentActivity.js';
 import { projectContext } from './tools/projectContext.js';
 import { projectCaptureNote } from './tools/captureNote.js';
+import { recordProgress } from './tools/recordProgress.js';
 
 const server = new Server(
   {
@@ -122,6 +123,47 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['note'],
         },
       },
+      {
+        name: 'record_progress',
+        description: 'Record development progress, decisions, or milestone signals',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['progress', 'decision', 'milestone'],
+              description: 'Type of record to create',
+            },
+            repo_path: {
+              type: 'string',
+              description: 'Optional repository path',
+            },
+            progress: {
+              type: 'object',
+              properties: {
+                summary: { type: 'string' },
+                confidence: { type: 'string', enum: ['low', 'mid', 'high'] },
+              },
+            },
+            decision: {
+              type: 'object',
+              properties: {
+                decision: { type: 'string' },
+                reason: { type: 'string' },
+              },
+            },
+            milestone: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                status: { type: 'string', enum: ['not_started', 'in_progress', 'completed'] },
+                confidence: { type: 'string', enum: ['low', 'mid', 'high'] },
+              },
+            },
+          },
+          required: ['type'],
+        },
+      },
     ],
   };
 });
@@ -162,6 +204,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: 'text',
               text: result.context_text,
+            },
+          ],
+        };
+      }
+      case 'record_progress': {
+        const result = await recordProgress(args as any);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
