@@ -6,6 +6,11 @@ export interface Manifest {
   project_name: string;
   one_liner: string;
   goals: string[];
+  goal_confirmation?: {
+    confirmed_by_user: boolean;
+    goal_horizon: 'final';
+    source: string;
+  };
   constraints: string[];
   tech_stack: string[];
   created_at: string;

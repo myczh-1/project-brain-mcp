@@ -93,21 +93,49 @@ Restart Cursor.
 
 ## Available Tools
 
-### project_init
+### brain_init
 
-Initialize the project with manifest information.
+Collect and validate final goals. This tool now writes manifest only after explicit user confirmation.
 
-### project_recent_activity
+- `answers` can be partial during collection; if incomplete, tool returns `need_more_info` with questions and `draft_manifest`
+- Manifest write is blocked unless explicit confirmation is provided: `confirmed_by_user=true`
+- Confirmation source is required before write: `goal_confirmation_source` (or legacy `goal_confirmation.source`)
+- Legacy `goal_confirmation` remains accepted for backward compatibility
+- Optional and can be empty/draft: `constraints`, `tech_stack`, `locale`
+- If already initialized, this tool returns `already_initialized` by default
+- To change goals later, call with `force_goal_update=true` and `update_reason` (enforced at runtime)
+
+### brain_recent_activity
 
 Read recent Git commits and detect hot paths.
 
-### project_context
+### brain_context
 
 Generate AI-ready project context.
 
-### project_capture_note
+### brain_capture_note
 
 Store notes about the project.
+
+### brain_record_progress
+
+Record progress, decisions, and milestones.
+
+### brain_estimate_progress
+
+Estimate milestone progress with explainable reasoning.
+
+### brain_suggest_actions
+
+Generate prioritized next actions.
+
+## Init Policy
+
+- `brain_init` is designed as a one-time goal anchor.
+- The long-term goal should come from explicit user input, not model guesses.
+- `brain_init` now enforces explicit confirmation that saved goals are final goals, not current implementation state.
+- Non-goal profile fields can be filled gradually or left empty.
+- Goal changes are allowed only when explicitly requested by the user.
 
 ---
 

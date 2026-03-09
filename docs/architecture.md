@@ -85,11 +85,11 @@ MVP 只提供少量 tools。
 | Server               |
 |                      |
 | Tools:               |
-| - project.init       |
-| - project.context    |
-| - project.activity   |
-| - project.next       |
-| - project.note       |
+| - brain_init         |
+| - brain_context      |
+| - brain_recent_activity |
+| - brain_suggest_actions |
+| - brain_capture_note |
 +----------+-----------+
 |
 |
@@ -130,9 +130,9 @@ MVP 提供 4+1 tools。
 
 ⸻
 
-5.1 project.init
+5.1 brain_init
 
-初始化项目。
+初始化项目长期目标（默认一次）。
 
 创建：
 
@@ -142,13 +142,25 @@ Input
 
 {
 "repo_path": "optional",
+"force_goal_update": false,
+"update_reason": "required when force_goal_update=true",
+"goal_confirmation": {
+"confirmed_by_user": true,
+"goal_horizon": "final",
+"source": "user confirmation or approved product document"
+},
 "answers": {
 "project_name": "",
 "one_liner": "",
-"goals": [],
+"goals": ["at least one goal"],
 "constraints": [],
-"tech_stack": []
+"tech_stack": [],
+"locale": "optional"
 }
+
+Guardrail: brain_init requires goal_confirmation.confirmed_by_user=true and
+goal_confirmation.goal_horizon="final" so stored goals are final project goals,
+not current implementation snapshots.
 }
 
 Output
@@ -157,6 +169,22 @@ Output
 
 {
 "status": "ok",
+"manifest": {...},
+"manifest_path": ".project-brain/manifest.json"
+}
+
+已初始化（默认）：
+
+{
+"status": "already_initialized",
+"manifest": {...},
+"manifest_path": ".project-brain/manifest.json"
+}
+
+显式改目标：
+
+{
+"status": "goal_updated",
 "manifest": {...},
 "manifest_path": ".project-brain/manifest.json"
 }
@@ -171,7 +199,7 @@ Output
 
 ⸻
 
-5.2 project.recent_activity
+5.2 brain_recent_activity
 
 读取最近 Git 活动。
 
@@ -207,7 +235,7 @@ Output
 
 ⸻
 
-5.3 project.context
+5.3 brain_context
 
 生成 AI 使用的项目上下文。
 
@@ -440,25 +468,25 @@ npx project-brain
 
 1
 
-project.init
+brain_init
 
 创建 manifest.json
 
 2
 
-project.recent_activity
+brain_recent_activity
 
 返回 commits
 
 3
 
-project.context
+brain_context
 
 返回稳定 context
 
 4
 
-project.capture_note
+brain_capture_note
 
 写入 notes
 
@@ -521,11 +549,10 @@ src/storage/*
 
 实现：
 
-project.init
-project.recent_activity
-project.context
+brain_init
+brain_recent_activity
+brain_context
 
 第四步：
 
 实现 git parser。
-

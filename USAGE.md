@@ -85,17 +85,29 @@ Project Brain 提供 7 个 MCP 工具：
 
 ### 1. `brain_init` - 初始化项目
 
-**用途**: 首次使用时初始化项目信息
+**用途**: 收集并校验项目长期目标；仅在明确用户确认后才会写入 manifest（默认只初始化一次）
+
+**初始化策略**:
+- `answers` 可分步提供（不再要求首次调用就填满）
+- 如果缺字段，返回 `need_more_info` + `questions` + `draft_manifest`（不会写文件）
+- 只有显式确认后才允许写入：`confirmed_by_user=true`
+- 写入前必须提供确认来源：`goal_confirmation_source`（兼容旧字段 `goal_confirmation.source`）
+- 可选（可为空/草稿）: `constraints`, `tech_stack`, `locale`
+- 已初始化后默认返回 `already_initialized`
+- 仅在用户明确要求改目标时，使用 `force_goal_update=true` + `update_reason`
 
 **参数**:
 ```json
 {
+  "confirmed_by_user": true,
+  "goal_confirmation_source": "user message: confirmed final product goals",
   "answers": {
     "project_name": "你的项目名",
     "one_liner": "一句话描述项目",
     "goals": ["目标1", "目标2"],
     "constraints": ["约束条件"],
-    "tech_stack": ["技术栈"]
+    "tech_stack": ["技术栈"],
+    "locale": "zh-CN"
   }
 }
 ```
@@ -103,6 +115,8 @@ Project Brain 提供 7 个 MCP 工具：
 **示例**:
 ```json
 {
+  "confirmed_by_user": true,
+  "goal_confirmation_source": "PRD v1.2 confirmed by product owner",
   "answers": {
     "project_name": "My Awesome App",
     "one_liner": "A revolutionary task management tool",
@@ -351,7 +365,7 @@ Project Brain 提供 7 个 MCP 工具：
 
 ```bash
 # 1. 初始化项目信息
-AI: 使用 project_init 工具
+AI: 使用 brain_init 工具
 {
   "answers": {
     "project_name": "TaskMaster",
@@ -362,7 +376,7 @@ AI: 使用 project_init 工具
 }
 
 # 2. 创建第一个里程碑
-AI: 使用 record_progress 工具
+AI: 使用 brain_record_progress 工具
 {
   "type": "milestone",
   "milestone": {
@@ -372,7 +386,7 @@ AI: 使用 record_progress 工具
 }
 
 # 3. 获取项目上下文
-AI: 使用 project_context 工具
+AI: 使用 brain_context 工具
 ```
 
 ---
@@ -381,17 +395,17 @@ AI: 使用 project_context 工具
 
 ```bash
 # 1. 查看所有里程碑的进度
-AI: 使用 estimate_milestone_progress 工具
+AI: 使用 brain_estimate_progress 工具
 {}
 
 # 2. 获取下一步建议
-AI: 使用 suggest_next_actions 工具
+AI: 使用 brain_suggest_actions 工具
 {
   "limit": 3
 }
 
 # 3. 查看完整项目上下文（包含进度和建议）
-AI: 使用 project_context 工具
+AI: 使用 brain_context 工具
 {
   "depth": "normal",
   "recent_commits": 50
@@ -404,7 +418,7 @@ AI: 使用 project_context 工具
 
 ```bash
 # 开发过程中做了重要决策
-AI: 使用 record_progress 工具
+AI: 使用 brain_record_progress 工具
 {
   "type": "decision",
   "decision": {
@@ -414,7 +428,7 @@ AI: 使用 record_progress 工具
 }
 
 # 记录进度
-AI: 使用 record_progress 工具
+AI: 使用 brain_record_progress 工具
 {
   "type": "progress",
   "progress": {
@@ -430,7 +444,7 @@ AI: 使用 record_progress 工具
 
 ```bash
 # 1. 创建新里程碑
-AI: 使用 record_progress 工具
+AI: 使用 brain_record_progress 工具
 {
   "type": "milestone",
   "milestone": {
@@ -440,7 +454,7 @@ AI: 使用 record_progress 工具
 }
 
 # 2. 开始工作后更新状态
-AI: 使用 record_progress 工具
+AI: 使用 brain_record_progress 工具
 {
   "type": "milestone",
   "milestone": {
@@ -450,13 +464,13 @@ AI: 使用 record_progress 工具
 }
 
 # 3. 查看进度估计
-AI: 使用 estimate_milestone_progress 工具
+AI: 使用 brain_estimate_progress 工具
 {
   "milestone_name": "用户认证系统"
 }
 
 # 4. 完成后标记
-AI: 使用 record_progress 工具
+AI: 使用 brain_record_progress 工具
 {
   "type": "milestone",
   "milestone": {

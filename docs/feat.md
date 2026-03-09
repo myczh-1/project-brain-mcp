@@ -114,26 +114,39 @@ Agents can retrieve structured information instead of repeatedly re-analyzing co
 
 ProjectBrain exposes the following MCP tools.
 
-## 4.1 init_project_brain
+## 4.1 brain_init
 
-Initialize the brain storage for a project.
+Initialize project goals once with user-confirmed answers.
 
 ### Input
 
 ```
 {
-  "project_name": "string",
-  "description": "string"
+  "goal_confirmation": {
+    "confirmed_by_user": true,
+    "goal_horizon": "final",
+    "source": "user confirmation or approved PRD"
+  },
+  "answers": {
+    "project_name": "string",
+    "one_liner": "string",
+    "goals": ["string"],
+    "constraints": ["string"],
+    "tech_stack": ["string"]
+  },
+  "force_goal_update": false,
+  "update_reason": "string"
 }
 ```
 
 ### Behavior
 
-Creates the brain storage directory and initial metadata.
+Creates initial manifest on first call. If already initialized, returns already_initialized unless force_goal_update=true with update_reason.
+The call is rejected with need_more_info unless goal_confirmation explicitly marks goals as user-confirmed final goals.
 
 ---
 
-## 4.2 get_git_activity
+## 4.2 brain_recent_activity
 
 Retrieve recent git activity signals.
 
@@ -161,7 +174,7 @@ Retrieve recent git activity signals.
 
 ---
 
-## 4.3 get_project_context
+## 4.3 brain_context
 
 Returns stored project context.
 
@@ -178,7 +191,7 @@ Returns stored project context.
 
 ---
 
-## 4.4 record_progress
+## 4.4 brain_record_progress
 
 Stores inferred progress signals.
 
@@ -198,28 +211,30 @@ Stores inferred progress signals.
 ProjectBrain maintains structured project memory.
 
 ```
-brain/
- ├── project_context.json
+.project-brain/
+ ├── manifest.json
  ├── milestones.json
  ├── progress.json
  ├── decisions.json
- └── git_cache.json
+ ├── notes.ndjson
+ └── next_actions.json
 ```
 
 Each file serves a specific purpose.
 
 ---
 
-## project_context.json
+## manifest.json
 
-High-level description of the project.
+Project goal anchor initialized by `brain_init`.
 
 Example:
 
 ```
 {
   "project_name": "ProjectBrain",
-  "goal": "Enable AI to understand project progress",
+  "one_liner": "Enable AI to understand project progress",
+  "goals": ["Provide stable project context for coding agents"],
   "tech_stack": ["Node", "TypeScript"],
   "core_modules": [
     "progress-understanding",
@@ -302,8 +317,8 @@ Agent receives user query:
 
 Agent actions:
 
-1. call get_git_activity
-2. call get_project_context
+1. call brain_recent_activity
+2. call brain_context
 3. combine signals
 4. produce summary
 ```
