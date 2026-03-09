@@ -1,119 +1,79 @@
-import { readManifest, Manifest } from '../storage/manifest.js';
-import { readNotes, Note } from '../storage/notes.js';
-import { parseLog, Commit } from '../git/parseLog.js';
-import { calculateHotPaths } from '../git/hotPaths.js';
-import { inferFocus, inferMilestoneSignals, MilestoneSignal } from '../understanding/inferFocus.js';
-import { generateContextText, ContextData } from '../understanding/contextTemplate.js';
-import { readProgress } from '../storage/progress.js';
-import { readDecisions } from '../storage/decisions.js';
-import { readMilestones, upsertInferredMilestones } from '../storage/milestones.js';
-import {
-  estimateAllMilestones,
-  estimateProgressSummary,
-  progressSummaryToOverallEstimation,
-  ProgressEstimation,
-  ProgressSummary,
-} from '../understanding/estimateProgress.js';
-import { NextAction } from '../storage/nextActions.js';
-import { recommendNextActions } from '../understanding/recommendActions.js';
-
+import { readManifest } from '../storage/manifest.js';
+import { parseLog } from '../git/parseLog.js';
 export interface ProjectContextInput {
-  depth?: 'short' | 'normal';
-  include_recent_activity?: boolean;
-  recent_commits?: number;
   repo_path?: string;
 }
 
 export interface ProjectContextOutput {
-  context_text: string;
-  structured: {
-    manifest: Manifest | null;
-    recent_commits: Commit[];
-    notes: Note[];
-    focus: string;
+  project_name: string;
+  one_liner: string;
+  goals: string[];
+  current_focus: {
+    area: string;
     confidence: string;
-    milestone_progress?: ProgressEstimation[];
-    progress_summary?: ProgressSummary;
-    next_actions?: NextAction[];
   };
+  last_commit: {
+    message: string;
+    time: string;
+    author: string;
+  } | null;
+  should_run_deep_analysis: boolean;
 }
 
 export async function projectContext(input: ProjectContextInput): Promise<ProjectContextOutput> {
   const cwd = input.repo_path || process.cwd();
-  const depth = input.depth || 'normal';
-  const includeActivity = input.include_recent_activity !== false;
-  const recentCommitsCount = input.recent_commits || 30;
 
+  // Read manifest (lightweight)
   const manifest = readManifest(cwd);
-  const notes = readNotes(cwd);
-  let milestones = readMilestones(cwd);
-  
-  let recentCommits: Commit[] = [];
-  let focus = null;
-  let milestoneSignals: MilestoneSignal[] = [];
-  let milestoneProgress: ProgressEstimation[] = [];
-  let progressSummary: ProgressSummary | undefined;
-  let nextActions: NextAction[] = [];
-
-  if (includeActivity) {
-    recentCommits = parseLog(recentCommitsCount, cwd);
-    const hotPaths = calculateHotPaths(recentCommits, cwd);
-    focus = inferFocus(recentCommits, hotPaths);
-    milestoneSignals = inferMilestoneSignals(recentCommits, hotPaths);
-    
-    if (milestoneSignals.length > 0) {
-      milestones = upsertInferredMilestones(milestoneSignals, cwd);
-    }
-
-    const milestoneEstimations = milestones.length > 0
-      ? estimateAllMilestones(milestones, recentCommits, hotPaths)
-      : [];
-    progressSummary = estimateProgressSummary(milestones, milestoneEstimations, recentCommits, hotPaths);
-    const overall = progressSummaryToOverallEstimation(progressSummary);
-    milestoneProgress = milestoneEstimations.length > 0 ? [overall, ...milestoneEstimations] : [overall];
-    
-    // Generate next action recommendations
-    const progress = readProgress(cwd);
-    const decisions = readDecisions(cwd);
-    const recommendations = recommendNextActions(
-      milestones,
-      recentCommits,
-      hotPaths,
-      progress,
-      decisions,
-      milestoneProgress
-    );
-    nextActions = recommendations.next_actions;
+  if (!manifest) {
+    throw new Error('Project not initialized. Please run brain_init first.');
   }
 
-  const progress = readProgress(cwd);
-  const decisions = readDecisions(cwd);
-  const contextData: ContextData = {
-    manifest,
-    recentCommits: depth === 'short' ? recentCommits.slice(0, 5) : recentCommits,
-    notes,
-    focus,
-    milestoneSignals,
-    progress,
-    decisions,
-    milestones,
-    milestoneProgress,
-    nextActions,
-  };
+  // Read only last 5 commits for quick focus inference
+  const recentCommits = parseLog(5, cwd);
+  
+  // Simple focus inference: just look at commit tags
+  let focusArea = 'Unknown';
+  let focusConfidence = 'low';
+  
+  if (recentCommits.length > 0) {
+    // Infer focus from commit tags
+    const tags = recentCommits.map(c => c.tag);
+    const tagCounts = new Map<string, number>();
+    tags.forEach(tag => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1));
+    
+    const topTag = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1])[0];
+    if (topTag && topTag[0] !== 'other') {
+      focusArea = `Recent ${topTag[0]} work`;
+      focusConfidence = topTag[1] >= 3 ? 'high' : 'mid';
+    } else {
+      focusArea = 'General development';
+      focusConfidence = 'mid';
+    }
+  }
 
-  const contextText = generateContextText(contextData);
+  // Determine if deep analysis is needed
+  // Heuristic: if last commit was >24h ago, suggest deep analysis
+  let shouldRunDeepAnalysis = false;
+  if (recentCommits.length > 0) {
+    const lastCommitTime = new Date(recentCommits[0].time);
+    const hoursSinceLastCommit = (Date.now() - lastCommitTime.getTime()) / (1000 * 60 * 60);
+    shouldRunDeepAnalysis = hoursSinceLastCommit > 24;
+  }
 
   return {
-    context_text: contextText,
-    structured: {
-      manifest,
-      recent_commits: contextData.recentCommits,
-      notes,
-      focus: focus?.focus || '',
-      confidence: focus?.confidence || '',
-      milestone_progress: milestoneProgress,
-      progress_summary: progressSummary,
-      next_actions: nextActions,
+    project_name: manifest.project_name,
+    one_liner: manifest.one_liner,
+    goals: manifest.goals,
+    current_focus: {
+      area: focusArea,
+      confidence: focusConfidence,
     },
+    last_commit: recentCommits.length > 0 ? {
+      message: recentCommits[0].message,
+      time: recentCommits[0].time,
+      author: recentCommits[0].author,
+    } : null,
+    should_run_deep_analysis: shouldRunDeepAnalysis,
   };
 }
