@@ -11,7 +11,9 @@
     "README.md", "LICENSE"
   ],
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/app/mcpMain.ts",
+    "dev:mcp": "tsx watch src/app/mcpMain.ts",
+    "dev:http": "tsx src/app/serverMain.ts",
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },

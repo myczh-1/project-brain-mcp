@@ -115,6 +115,26 @@ Project Brain stores data in `.project-brain/`:
 - `progress.ndjson`: execution facts, blockers, current status
 - `milestones.json`: milestone state used for broader analysis
 
+## Architecture
+
+Project Brain is now split into explicit layers:
+
+- `src/core`
+  - file-backed memory storage
+  - git evidence and repository inspection
+  - inference and recommendation logic
+- `src/service`
+  - product-facing use cases such as initialization, memory ingest, context building, and dashboard data assembly
+- `src/transports/mcp`
+  - MCP protocol adapter, tool registry, and resource registry
+- `src/app`
+  - runtime entrypoints
+  - current MCP stdio bootstrap
+  - future local server bootstrap placeholder
+
+Current production entry remains MCP over `stdio`.
+The split is intended to make future MCP over HTTP and custom web UI work reuse the same service layer.
+
 ## Available Tools
 
 ### Initialize
