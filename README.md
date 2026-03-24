@@ -117,32 +117,22 @@ Project Brain stores data in `.project-brain/`:
 
 ## Available Tools
 
-### Identity and governance
+### Initialize
 
 - `brain_init`: initialize or update the project identity anchor
-- `brain_define_project_spec`: define stable project rules
 
-### Change execution
+### Inspect
 
-- `brain_create_change`: create a change-spec
-- `brain_update_change`: update an existing change-spec
-- `brain_change_context`: generate execution-ready context for a specific change
+- `brain_dashboard`: inspect the current project memory and status through a unified dashboard view
 
-### Memory capture
+### Execution Context
 
-- `brain_ingest_memory`: validate and route a GPT-structured memory record into the right layer
-- `brain_log_decision`: record a concrete decision with rationale
-- `brain_capture_note`: capture a raw note or observation
-- `brain_record_progress`: record progress facts or milestone state
+- `brain_context`: get lightweight context for everyday coding conversations
+- `brain_change_context`: get detailed context for a specific change before larger decisions or implementations
 
-### Analysis
+### Update Memory
 
-- `brain_dashboard`: read-only project dashboard with project overview, recent activity, memory summaries, and next actions
-- `brain_context`: get project-level context
-- `brain_recent_activity`: inspect recent commits and hot paths
-- `brain_analyze`: run deeper analysis with progress estimation and action suggestions
-- `brain_estimate_progress`: estimate milestone progress
-- `brain_suggest_actions`: generate prioritized next actions
+- `brain_ingest_memory`: validate and ingest a structured memory record from user input or GPT output
 
 ## MCP Apps Notes
 
@@ -156,11 +146,10 @@ Project Brain stores data in `.project-brain/`:
 ## Example Flow
 
 1. Initialize the project identity with `brain_init`
-2. Define stable rules with `brain_define_project_spec`
-3. Create a change with `brain_create_change`
-4. Log important choices with `brain_log_decision`
-5. Track implementation facts with `brain_record_progress`
-6. Ask `brain_change_context` for the full execution context before coding
+2. Ingest confirmed project memory or GPT-structured results with `brain_ingest_memory`
+3. Ask `brain_context` for lightweight day-to-day coding context
+4. Ask `brain_change_context` for detailed change execution context
+5. Use `brain_dashboard` to inspect the current project memory and status
 
 ## GPT Collaboration Loop
 
@@ -200,7 +189,7 @@ Example ingest request:
 `brain_ingest_memory` is intentionally single-record and create-first:
 
 - it validates the payload
-- it routes the record to the right ProjectBrain tool
+- it routes the record to the right internal ProjectBrain layer
 - it rejects silent overwrites of existing project spec or change spec
 - it keeps execution agents dependent on ProjectBrain context, not GPT chat history
 

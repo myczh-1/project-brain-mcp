@@ -46,7 +46,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: 'brain_dashboard',
-      description: 'Return a read-only project dashboard with structured data and an MCP Apps UI resource when supported by the host.',
+      description: 'Inspect the current project memory and status through a read-only dashboard view.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -72,7 +72,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: 'brain_init',
-      description: 'Initialize or update the project identity anchor in manifest.json.',
+      description: 'Initialize or update the project identity anchor for this repository.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -91,109 +91,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: 'brain_define_project_spec',
-      description: 'Create or update the stable governance rules for the project.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          repo_path: { type: 'string' },
-          spec: {
-            type: 'object',
-            properties: {
-              product_goal: { type: 'string' },
-              non_goals: { type: 'array', items: { type: 'string' } },
-              architecture_rules: { type: 'array', items: { type: 'string' } },
-              coding_rules: { type: 'array', items: { type: 'string' } },
-              agent_rules: { type: 'array', items: { type: 'string' } },
-              source: { type: 'string' },
-            },
-            required: ['product_goal'],
-          },
-        },
-        required: ['spec'],
-      },
-    },
-    {
-      name: 'brain_create_change',
-      description: 'Create a change-spec for a single iteration or feature.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          repo_path: { type: 'string' },
-          change: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              title: { type: 'string' },
-              summary: { type: 'string' },
-              status: { type: 'string', enum: ['proposed', 'active', 'done', 'dropped'] },
-              goals: { type: 'array', items: { type: 'string' } },
-              non_goals: { type: 'array', items: { type: 'string' } },
-              constraints: { type: 'array', items: { type: 'string' } },
-              acceptance_criteria: { type: 'array', items: { type: 'string' } },
-              affected_areas: { type: 'array', items: { type: 'string' } },
-              related_decision_ids: { type: 'array', items: { type: 'string' } },
-            },
-            required: ['title', 'summary'],
-          },
-        },
-        required: ['change'],
-      },
-    },
-    {
-      name: 'brain_update_change',
-      description: 'Update an existing change-spec.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          repo_path: { type: 'string' },
-          change_id: { type: 'string' },
-          patch: {
-            type: 'object',
-            properties: {
-              title: { type: 'string' },
-              summary: { type: 'string' },
-              status: { type: 'string', enum: ['proposed', 'active', 'done', 'dropped'] },
-              goals: { type: 'array', items: { type: 'string' } },
-              non_goals: { type: 'array', items: { type: 'string' } },
-              constraints: { type: 'array', items: { type: 'string' } },
-              acceptance_criteria: { type: 'array', items: { type: 'string' } },
-              affected_areas: { type: 'array', items: { type: 'string' } },
-              related_decision_ids: { type: 'array', items: { type: 'string' } },
-            },
-          },
-        },
-        required: ['change_id', 'patch'],
-      },
-    },
-    {
-      name: 'brain_log_decision',
-      description: 'Record a concrete decision with rationale.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          repo_path: { type: 'string' },
-          decision: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              title: { type: 'string' },
-              decision: { type: 'string' },
-              rationale: { type: 'string' },
-              alternatives_considered: { type: 'array', items: { type: 'string' } },
-              scope: { type: 'string', enum: ['project', 'change', 'module'] },
-              related_change_id: { type: 'string' },
-              supersedes: { type: 'string' },
-            },
-            required: ['title', 'decision', 'rationale'],
-          },
-        },
-        required: ['decision'],
-      },
-    },
-    {
       name: 'brain_change_context',
-      description: 'Generate execution-ready context for a specific change, including optional OpenSpec compatibility.',
+      description: 'Get detailed execution context for a specific change before making a larger decision or implementation move.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -206,7 +105,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: 'brain_ingest_memory',
-      description: 'Validate and ingest a single GPT-structured memory record into the correct ProjectBrain layer.',
+      description: 'Validate and ingest a single structured memory record from user input or GPT output.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -232,105 +131,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: 'brain_analyze',
-      description: 'Deep project analysis with progress estimation and action recommendations.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          repo_path: { type: 'string' },
-          depth: { type: 'string', enum: ['quick', 'full'] },
-          recent_commits: { type: 'number' },
-        },
-      },
-    },
-    {
-      name: 'brain_recent_activity',
-      description: 'Get recent git activity with commits and hot paths.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          limit: { type: 'number' },
-          since_days: { type: 'number' },
-          repo_path: { type: 'string' },
-        },
-      },
-    },
-    {
       name: 'brain_context',
-      description: 'Get project-level context: identity, stable rules, recent decisions, progress, and code evidence.',
+      description: 'Get lightweight project context for everyday coding conversations.',
       inputSchema: {
         type: 'object',
         properties: {
           repo_path: { type: 'string' },
-        },
-      },
-    },
-    {
-      name: 'brain_capture_note',
-      description: 'Capture a raw observation or temporary note about the project.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          note: { type: 'string' },
-          tags: { type: 'array', items: { type: 'string' } },
-          related_change_id: { type: 'string' },
-          repo_path: { type: 'string' },
-        },
-        required: ['note'],
-      },
-    },
-    {
-      name: 'brain_record_progress',
-      description: 'Record development progress facts or milestone state.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          type: { type: 'string', enum: ['progress', 'milestone'] },
-          repo_path: { type: 'string' },
-          progress: {
-            type: 'object',
-            properties: {
-              summary: { type: 'string' },
-              status: { type: 'string', enum: ['planned', 'in_progress', 'blocked', 'done'] },
-              blockers: { type: 'array', items: { type: 'string' } },
-              related_change_id: { type: 'string' },
-              confidence: { type: 'string', enum: ['low', 'mid', 'high'] },
-            },
-          },
-          milestone: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              status: { type: 'string', enum: ['not_started', 'in_progress', 'completed'] },
-              confidence: { type: 'string', enum: ['low', 'mid', 'high'] },
-            },
-          },
-        },
-        required: ['type'],
-      },
-    },
-    {
-      name: 'brain_estimate_progress',
-      description: 'Estimate progress percentage for milestones with explainable reasoning.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          milestone_name: { type: 'string' },
-          repo_path: { type: 'string' },
-          recent_commits: { type: 'number' },
-        },
-      },
-    },
-    {
-      name: 'brain_suggest_actions',
-      description: 'Generate prioritized next action recommendations based on project state.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          limit: { type: 'number' },
-          filter_by_milestone: { type: 'string' },
-          repo_path: { type: 'string' },
-          recent_commits: { type: 'number' },
         },
       },
     },
