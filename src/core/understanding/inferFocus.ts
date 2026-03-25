@@ -68,8 +68,8 @@ export function inferMilestoneSignals(commits: Commit[], hotPaths: HotPath[]): M
   
   const milestonePatterns = [
     {
-      keywords: ['mcp', 'server', 'protocol'],
-      name: 'MCP Server Implementation',
+      keywords: ['http', 'api', 'server', 'transport'],
+      name: 'HTTP Service Implementation',
       threshold: 2
     },
     {

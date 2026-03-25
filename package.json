@@ -17,7 +17,7 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "mcp",
+    "http",
     "ai",
     "context",
     "project-management"

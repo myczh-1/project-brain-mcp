@@ -602,7 +602,12 @@ function inferTagHints(milestoneName: string, keywords: string[]): Commit['tag']
     return ['refactor'];
   }
 
-  if (lowerName.includes('mcp') || lowerName.includes('server') || lowerName.includes('implementation')) {
+  if (
+    lowerName.includes('http') ||
+    lowerName.includes('api') ||
+    lowerName.includes('server') ||
+    lowerName.includes('implementation')
+  ) {
     return ['feat', 'fix', 'chore'];
   }
 
