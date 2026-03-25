@@ -1,9 +1,10 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { URL } from 'node:url';
 import { createHttpApiHandlers } from '../../service/api/index.js';
+import { createMcpHttpHandler } from '../mcp/server.js';
 
 type JsonRecord = Record<string, unknown>;
-type HttpMethod = 'GET' | 'POST' | 'PUT';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 interface RouteDefinition {
   method: HttpMethod;
@@ -53,6 +54,21 @@ const ROUTES: RouteDefinition[] = [
     method: 'PUT',
     path: '/api/project-spec',
     description: 'Update the stable project spec.',
+  },
+  {
+    method: 'POST',
+    path: '/mcp',
+    description: 'Send MCP JSON-RPC requests over Streamable HTTP.',
+  },
+  {
+    method: 'GET',
+    path: '/mcp',
+    description: 'Open an MCP SSE stream for server-to-client messages or stream resumption.',
+  },
+  {
+    method: 'DELETE',
+    path: '/mcp',
+    description: 'Terminate an MCP session.',
   },
 ];
 
@@ -139,7 +155,30 @@ function getRepoPath(url: URL): string | undefined {
   return url.searchParams.get('repo_path') || undefined;
 }
 
+function getAllowedOriginsFromEnv() {
+  const configured = process.env.PROJECT_BRAIN_ALLOWED_ORIGINS
+    ?.split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
+  if (configured && configured.length > 0) {
+    return configured;
+  }
+
+  return [
+    'http://127.0.0.1',
+    'http://localhost',
+    'http://127.0.0.1:3000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3210',
+    'http://localhost:3210',
+  ];
+}
+
 function getAllowedMethods(pathname: string): HttpMethod[] {
+  if (pathname === '/mcp') {
+    return ['GET', 'POST', 'DELETE'];
+  }
   if (pathname === '/' || pathname === '/health' || pathname === '/api') {
     return ['GET'];
   }
@@ -160,6 +199,9 @@ function getAllowedMethods(pathname: string): HttpMethod[] {
 
 export function createHttpServer() {
   const api = createHttpApiHandlers();
+  const mcpHandler = createMcpHttpHandler({
+    allowedOrigins: getAllowedOriginsFromEnv(),
+  });
 
   return createServer(async (req, res) => {
     try {
@@ -188,11 +230,17 @@ export function createHttpServer() {
         return;
       }
 
+      if (pathname === '/mcp') {
+        await mcpHandler.handle(req, res);
+        return;
+      }
+
       if (req.method === 'GET' && pathname === '/') {
         sendJson(res, 200, {
           service: 'project-brain-http',
           status: 'ok',
           transport: 'http',
+          mcp_endpoint: '/mcp',
           endpoints: ROUTES,
         });
         return;
@@ -211,6 +259,7 @@ export function createHttpServer() {
         sendJson(res, 200, {
           service: 'project-brain-http',
           base_path: '/api',
+          mcp_endpoint: '/mcp',
           query_parameters: {
             repo_path: 'Optional repository path for read routes.',
             recent_commits: 'Optional commit window for dashboard or change context.',

@@ -1,6 +1,6 @@
 # Project Brain
 
-Project Brain is an HTTP service for AI collaborative development.
+Project Brain is an HTTP service for AI collaborative development, with a standard MCP Streamable HTTP endpoint for assistant integrations.
 
 Its responsibility is the engineering loop after project intent has begun to exist:
 
@@ -124,12 +124,33 @@ Current endpoints:
 - `GET /`
 - `GET /health`
 - `GET /api`
+- `GET /mcp`
 - `GET /api/dashboard`
 - `GET /api/context`
 - `GET /api/changes/:changeId/context`
+- `POST /mcp`
 - `POST /api/init`
 - `POST /api/memory/ingest`
+- `DELETE /mcp`
 - `PUT /api/project-spec`
+
+## MCP Streamable HTTP
+
+Project Brain exposes a standard MCP Streamable HTTP endpoint at:
+
+```text
+http://127.0.0.1:3210/mcp
+```
+
+This endpoint is intended for AI assistants and MCP-aware clients.
+The `/api/*` routes remain product-facing HTTP APIs for custom UI and direct integrations.
+
+When running locally, Project Brain validates browser `Origin` headers for `/mcp`.
+You can override the allowlist with:
+
+```bash
+PROJECT_BRAIN_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
 
 ## Example Requests
 
@@ -138,6 +159,12 @@ Inspect the service and endpoint index:
 ```bash
 curl http://127.0.0.1:3210/
 curl http://127.0.0.1:3210/api
+```
+
+For MCP clients, use this endpoint URL:
+
+```text
+http://127.0.0.1:3210/mcp
 ```
 
 Read project context for the current repository:

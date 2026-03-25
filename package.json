@@ -8,7 +8,8 @@
   },
   "files": [
     "dist",
-    "README.md", "LICENSE"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "tsx watch src/app/serverMain.ts",
@@ -18,13 +19,17 @@
   },
   "keywords": [
     "http",
+    "mcp",
     "ai",
     "context",
     "project-management"
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "zod": "^4.3.6"
+  },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
