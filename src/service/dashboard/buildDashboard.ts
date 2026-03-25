@@ -117,7 +117,7 @@ export async function buildDashboardData(
         confidence: 'low',
       },
       activity: {
-        summary: 'Project Brain needs `brain_init` before it can build a full dashboard.',
+        summary: 'Project Brain can start recording memory without `brain_init`, but the identity anchor is still empty.',
         recent_commits: [],
         hot_paths: [],
         last_active_at: null,
@@ -132,13 +132,13 @@ export async function buildDashboardData(
           'Progress Memory',
           [],
           'No explicit progress entries recorded yet.',
-          'Run `brain_record_progress` to start tracking progress.'
+          'Record progress or ingest a progress memory entry to start tracking execution.'
         ),
         decision_memory: buildMemorySection(
           'Decision Memory',
           [],
           'No decisions recorded yet.',
-          'Run `brain_log_decision` or `brain_ingest_memory` to store decisions.'
+          'Ingest a decision record to start preserving rationale.'
         ),
         milestone_memory: buildMemorySection(
           'Milestone Memory',
@@ -150,7 +150,7 @@ export async function buildDashboardData(
           'Note Memory',
           [],
           'No notes captured yet.',
-          'Run `brain_capture_note` to store project notes.'
+          'Ingest a note record to store raw observations.'
         ),
       },
       next_actions: [],
@@ -160,7 +160,7 @@ export async function buildDashboardData(
         is_initialized: false,
         include_deep_analysis: includeDeepAnalysis,
         degradation_notice:
-          'This dashboard is available as structured text everywhere and renders as an app UI only in hosts that support MCP Apps.',
+          'This dashboard is available as structured text and can be rendered by any HTTP client or custom web UI.',
       },
     };
   }
@@ -280,7 +280,7 @@ export async function buildDashboardData(
       is_initialized: true,
       include_deep_analysis: includeDeepAnalysis,
       degradation_notice:
-        'The dashboard renders inline only in hosts that support MCP Apps. Other hosts still receive the same structured data and text summary.',
+        'The dashboard response is portable across HTTP clients and custom web UI consumers.',
     },
   };
 }
@@ -310,4 +310,3 @@ export function buildDashboardSummary(data: DashboardData): string {
     actionText,
   ].join(' | ');
 }
-

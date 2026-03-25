@@ -1,4 +1,4 @@
-import { readManifest } from '../../core/storage/manifest.js';
+import { buildFallbackManifest, readManifest } from '../../core/storage/manifest.js';
 import { parseLog, Commit } from '../../core/git/parseLog.js';
 import { calculateHotPaths, HotPath } from '../../core/git/hotPaths.js';
 import { inferFocus, inferMilestoneSignals } from '../../core/understanding/inferFocus.js';
@@ -51,10 +51,7 @@ export async function brainAnalyze(input: BrainAnalyzeInput): Promise<BrainAnaly
   const recentCommitsCount = input.recent_commits || 50;
 
   // Load manifest
-  const manifest = readManifest(cwd);
-  if (!manifest) {
-    throw new Error('Project not initialized. Please run brain_init first.');
-  }
+  const manifest = readManifest(cwd) || buildFallbackManifest(cwd);
 
   // Load git activity
   const commits = parseLog(recentCommitsCount, cwd);

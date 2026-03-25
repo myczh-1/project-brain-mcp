@@ -13,6 +13,21 @@ export interface Manifest {
   updated_at: string;
 }
 
+export function buildFallbackManifest(cwd?: string): Manifest {
+  const repoRoot = cwd ? path.resolve(cwd) : process.cwd();
+  const now = new Date().toISOString();
+
+  return {
+    project_name: path.basename(repoRoot),
+    summary: 'Project identity has not been explicitly initialized yet.',
+    repo_type: 'application',
+    primary_stack: [],
+    long_term_goal: undefined,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
 const MANIFEST_FILE = 'manifest.json';
 
 export function getManifestPath(cwd?: string): string {

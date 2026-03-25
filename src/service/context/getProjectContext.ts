@@ -1,4 +1,4 @@
-import { readManifest } from '../../core/storage/manifest.js';
+import { buildFallbackManifest, readManifest } from '../../core/storage/manifest.js';
 import { readProjectSpec } from '../../core/storage/projectSpec.js';
 import { readDecisions } from '../../core/storage/decisions.js';
 import { readProgress } from '../../core/storage/progress.js';
@@ -62,11 +62,7 @@ export interface ProjectContextOutput {
 export async function projectContext(input: ProjectContextInput): Promise<ProjectContextOutput> {
   const cwd = input.repo_path || process.cwd();
 
-  // Read manifest (lightweight)
-  const manifest = readManifest(cwd);
-  if (!manifest) {
-    throw new Error('Project not initialized. Please run brain_init first.');
-  }
+  const manifest = readManifest(cwd) || buildFallbackManifest(cwd);
   const projectSpec = readProjectSpec(cwd);
   const decisions = readDecisions(cwd).slice(-5).reverse();
   const progress = readProgress(cwd).slice(-5).reverse();

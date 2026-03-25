@@ -91,6 +91,6 @@ export async function projectInit(input: ProjectInitInput): Promise<ProjectInitO
     manifest_path: manifestPath,
     message: hasManifest
       ? 'Project identity anchor updated.'
-      : 'Project initialized with identity anchor.',
+      : 'Project identity anchor created.',
   };
 }

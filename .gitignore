@@ -3,3 +3,6 @@ dist/
 *.log
 .DS_Store
 .project-brain/
+.idea/
+test.js
+test-enhanced.js

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { readManifest } from '../../core/storage/manifest.js';
+import { buildFallbackManifest, readManifest } from '../../core/storage/manifest.js';
 import { readProjectSpec } from '../../core/storage/projectSpec.js';
 import { readChange, ChangeSpec } from '../../core/storage/changes.js';
 import { readDecisions } from '../../core/storage/decisions.js';
@@ -176,11 +176,7 @@ function buildRisks(
 export async function changeContext(input: ChangeContextInput): Promise<ChangeContextOutput> {
   const cwd = input.repo_path || process.cwd();
   const recentCommitCount = input.recent_commits || 30;
-  const manifest = readManifest(cwd);
-
-  if (!manifest) {
-    throw new Error('Project not initialized. Please run brain_init first.');
-  }
+  const manifest = readManifest(cwd) || buildFallbackManifest(cwd);
 
   const projectSpec = readProjectSpec(cwd);
   const change = readChange(input.change_id, cwd) || readOpenSpecChange(input.change_id, cwd);
