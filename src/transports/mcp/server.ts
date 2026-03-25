@@ -194,6 +194,7 @@ export function createMcpHttpHandler(options: McpHttpHandlerOptions = {}) {
 
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
+      enableJsonResponse: true,
       onsessioninitialized: sessionId => {
         transports.set(sessionId, transport);
       },
