@@ -121,13 +121,36 @@ http://127.0.0.1:3210
 
 Current endpoints:
 
+- `GET /`
 - `GET /health`
+- `GET /api`
 - `GET /api/dashboard`
 - `GET /api/context`
 - `GET /api/changes/:changeId/context`
 - `POST /api/init`
 - `POST /api/memory/ingest`
 - `PUT /api/project-spec`
+
+## Example Requests
+
+Inspect the service and endpoint index:
+
+```bash
+curl http://127.0.0.1:3210/
+curl http://127.0.0.1:3210/api
+```
+
+Read project context for the current repository:
+
+```bash
+curl "http://127.0.0.1:3210/api/context?repo_path=$(pwd)"
+```
+
+Read the dashboard with deep analysis disabled:
+
+```bash
+curl "http://127.0.0.1:3210/api/dashboard?repo_path=$(pwd)&include_deep_analysis=false"
+```
 
 ## Example Ingest
 
@@ -144,6 +167,14 @@ Current endpoints:
     }
   }
 }
+```
+
+Send that ingest payload:
+
+```bash
+curl -X POST http://127.0.0.1:3210/api/memory/ingest \
+  -H "Content-Type: application/json" \
+  -d @memory.json
 ```
 
 `brain_ingest_memory` stays deliberately single-record and create-first:

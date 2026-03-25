@@ -15,10 +15,20 @@ export async function main() {
     server.listen(port, host, () => resolve());
   });
 
+  const shutdown = (signal: NodeJS.Signals) => {
+    console.error(`Received ${signal}, shutting down Project Brain HTTP server...`);
+    server.close(error => {
+      if (error) {
+        console.error('Shutdown error:', error);
+        process.exit(1);
+        return;
+      }
+      process.exit(0);
+    });
+  };
+
+  process.once('SIGINT', () => shutdown('SIGINT'));
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+
   console.error(`Project Brain HTTP server running at http://${host}:${port}`);
 }
-
-main().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
