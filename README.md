@@ -61,15 +61,43 @@ Project Brain is strongest when the team keeps the boundary clear:
 - Project Brain is responsible for what gets recorded and retained
 - spec must reflect stable conclusions, not temporary noise
 
+## Agent Protocol
+
+Project Brain now defines a default assistant operating protocol in [docs/agent-protocol.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/agent-protocol.md).
+
+If an MCP-aware coding assistant is connected to Project Brain, the expected default loop is:
+
+1. Read `brain_context` before substantial implementation.
+2. Create or update a `change` for meaningful work.
+3. Record `decision`, `progress`, or `note` while work is happening.
+4. Run a reflection step before concluding larger work.
+
+This protocol is meant to be host-agnostic. Skills or host-specific prompts can strengthen compliance, but MCP remains the primary integration surface.
+
+Integration helpers:
+
+- generic host snippets: [docs/integration-snippets.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/integration-snippets.md)
+- Codex-oriented template: [docs/codex-template.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/codex-template.md)
+- Claude-oriented template: [docs/claude-template.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/claude-template.md)
+
 ## Available HTTP API Capabilities
 
 - `brain_dashboard`: inspect memory, recent activity, and current project state
 - `brain_context`: get lightweight project context for day-to-day execution
 - `brain_change_context`: get detailed context for one change before implementation
+- `brain_create_change`: create a structured change record before or during implementation
+- `brain_update_change`: update an existing change as work evolves
+- `brain_log_decision`: record a concrete decision and its rationale
+- `brain_record_progress`: record progress or milestone updates during execution
+- `brain_capture_note`: capture raw implementation notes or follow-up fragments
 - `brain_ingest_memory`: ingest one confirmed structured memory record
+- `brain_recent_activity`: inspect recent commits and hot paths for reflection
+- `brain_estimate_progress`: estimate overall or milestone progress from activity signals
+- `brain_suggest_actions`: suggest likely next engineering actions
+- `brain_analyze`: run a broader reflection pass across memory and repository activity
 - `brain_init`: optionally initialize or update the identity anchor
 
-Internal service capabilities also exist for project-spec and change management, but the public tool surface stays intentionally small.
+The public MCP surface is designed to cover the core loop of memory, development-time recording, and reflection.
 
 ## Why Analysis Matters
 
@@ -109,6 +137,50 @@ You can also run it in development mode:
 npm run dev
 ```
 
+To expose the service on your local network:
+
+```bash
+PROJECT_BRAIN_HOST=0.0.0.0 PROJECT_BRAIN_PORT=3210 npm run dev
+```
+
+## Release And Install Test
+
+Current npm status on 2026-03-26:
+
+- package: `@myczh/project-brain`
+- published latest: `0.0.3`
+
+Recommended release flow:
+
+```bash
+npm install
+npm run build
+npm publish --dry-run
+npm version patch
+git push --follow-tags
+npm publish
+```
+
+For a scoped public package, the first publish may require:
+
+```bash
+npm publish --access public
+```
+
+After publishing, test installation in a clean directory:
+
+```bash
+mkdir -p /tmp/project-brain-smoke
+cd /tmp/project-brain-smoke
+npx -y @myczh/project-brain@latest
+```
+
+Expected result:
+
+- the process starts a local HTTP server on `http://127.0.0.1:3210`
+- `GET /health` responds successfully
+- MCP clients can connect to `http://127.0.0.1:3210/mcp`
+
 ## Local HTTP API
 
 Project Brain exposes a minimal local HTTP server for custom clients and UI experiments.
@@ -124,6 +196,7 @@ Current endpoints:
 - `GET /`
 - `GET /health`
 - `GET /api`
+- `GET /ui`
 - `GET /mcp`
 - `GET /api/dashboard`
 - `GET /api/context`
@@ -159,6 +232,12 @@ Inspect the service and endpoint index:
 ```bash
 curl http://127.0.0.1:3210/
 curl http://127.0.0.1:3210/api
+```
+
+Open the dashboard UI prototype:
+
+```text
+http://127.0.0.1:3210/ui
 ```
 
 For MCP clients, use this endpoint URL:
@@ -213,7 +292,7 @@ curl -X POST http://127.0.0.1:3210/api/memory/ingest \
 
 ## Spec
 
-The current project-level spec lives in [docs/project-brain-spec.md](/Users/huanghe/Documents/project/node/ProjectBrain/docs/project-brain-spec.md).
+The current project-level spec lives in [docs/project-brain-spec.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/project-brain-spec.md).
 
 ## License
 

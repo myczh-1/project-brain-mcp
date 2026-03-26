@@ -9,6 +9,15 @@ import { changeContext } from '../../service/context/getChangeContext.js';
 import { projectContext } from '../../service/context/getProjectContext.js';
 import { ingestMemory } from '../../service/memory/ingestMemory.js';
 import { brainDashboard } from '../../service/dashboard/getDashboard.js';
+import { createChange } from '../../service/internal/createChange.js';
+import { updateChange } from '../../service/internal/updateChange.js';
+import { logDecision } from '../../service/internal/logDecision.js';
+import { recordProgress } from '../../service/internal/recordProgress.js';
+import { projectCaptureNote } from '../../service/internal/captureNote.js';
+import { projectRecentActivity } from '../../service/internal/recentActivity.js';
+import { estimateMilestoneProgressTool } from '../../service/internal/estimateMilestoneProgress.js';
+import { suggestNextActionsTool } from '../../service/internal/suggestNextActions.js';
+import { brainAnalyze } from '../../service/internal/brainAnalyze.js';
 
 function toTextContent(payload: unknown) {
   return [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }];
@@ -31,7 +40,7 @@ function createProjectBrainMcpServer() {
         },
       },
       instructions:
-        'Project Brain provides project memory, context, change context, initialization, and structured memory ingest over MCP Streamable HTTP.',
+        'Project Brain is the durable memory, development-recording, and reflection layer for AI-assisted software development. Prefer this loop: read brain_context before substantial implementation, create or update a change when starting meaningful work, record decisions and progress during execution, capture notes when needed, and use dashboard/activity/analysis tools to reflect development reality back into project memory.',
     }
   );
 
@@ -80,6 +89,170 @@ function createProjectBrainMcpServer() {
       const result = await projectInit({
         repo_path,
         answers,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_create_change',
+    {
+      description: 'Create a structured change record for a concrete implementation task.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        change: z.object({
+          id: z.string().optional(),
+          title: z.string(),
+          summary: z.string(),
+          goals: z.array(z.string()).optional(),
+          non_goals: z.array(z.string()).optional(),
+          constraints: z.array(z.string()).optional(),
+          acceptance_criteria: z.array(z.string()).optional(),
+          affected_areas: z.array(z.string()).optional(),
+          related_decision_ids: z.array(z.string()).optional(),
+          status: z.enum(['proposed', 'active', 'done', 'dropped']).optional(),
+        }),
+      },
+    },
+    async ({ repo_path, change }) => {
+      const result = await createChange({
+        repo_path,
+        change,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_update_change',
+    {
+      description: 'Update an existing change record as implementation progresses.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        change_id: z.string(),
+        patch: z.object({
+          title: z.string().optional(),
+          summary: z.string().optional(),
+          status: z.enum(['proposed', 'active', 'done', 'dropped']).optional(),
+          goals: z.array(z.string()).optional(),
+          non_goals: z.array(z.string()).optional(),
+          constraints: z.array(z.string()).optional(),
+          acceptance_criteria: z.array(z.string()).optional(),
+          affected_areas: z.array(z.string()).optional(),
+          related_decision_ids: z.array(z.string()).optional(),
+        }),
+      },
+    },
+    async ({ repo_path, change_id, patch }) => {
+      const result = await updateChange({
+        repo_path,
+        change_id,
+        patch,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_log_decision',
+    {
+      description: 'Record a concrete implementation or project decision with rationale.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        decision: z.object({
+          id: z.string().optional(),
+          title: z.string(),
+          decision: z.string(),
+          rationale: z.string(),
+          alternatives_considered: z.array(z.string()).optional(),
+          scope: z.enum(['project', 'change']).optional(),
+          related_change_id: z.string().optional(),
+          supersedes: z.string().optional(),
+        }),
+      },
+    },
+    async ({ repo_path, decision }) => {
+      const result = await logDecision({
+        repo_path,
+        decision,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_record_progress',
+    {
+      description: 'Record execution progress updates or milestone status during development.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        type: z.enum(['progress', 'milestone']),
+        progress: z
+          .object({
+            summary: z.string(),
+            status: z.enum(['planned', 'in_progress', 'blocked', 'done']).optional(),
+            blockers: z.array(z.string()).optional(),
+            related_change_id: z.string().optional(),
+            confidence: z.enum(['low', 'mid', 'high']),
+          })
+          .optional(),
+        milestone: z
+          .object({
+            name: z.string(),
+            status: z.enum(['not_started', 'in_progress', 'completed']),
+            confidence: z.enum(['low', 'mid', 'high']).optional(),
+          })
+          .optional(),
+      },
+    },
+    async ({ repo_path, type, progress, milestone }) => {
+      const result = await recordProgress({
+        repo_path,
+        type,
+        progress,
+        milestone,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_capture_note',
+    {
+      description: 'Capture a raw implementation note, observation, or follow-up fragment.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        note: z.string(),
+        tags: z.array(z.string()).optional(),
+        related_change_id: z.string().optional(),
+      },
+    },
+    async ({ repo_path, note, tags, related_change_id }) => {
+      const result = await projectCaptureNote({
+        repo_path,
+        note,
+        tags,
+        related_change_id,
       });
 
       return {
@@ -156,6 +329,104 @@ function createProjectBrainMcpServer() {
 
       return {
         content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_recent_activity',
+    {
+      description: 'Inspect recent repository activity and hot paths for reflection and context updates.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        limit: z.number().optional(),
+        since_days: z.number().optional(),
+      },
+    },
+    async ({ repo_path, limit, since_days }) => {
+      const result = await projectRecentActivity({
+        repo_path,
+        limit,
+        since_days,
+      });
+
+      return {
+        content: [{ type: 'text', text: result.summary }],
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_estimate_progress',
+    {
+      description: 'Estimate overall or milestone progress from repository activity and memory signals.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        milestone_name: z.string().optional(),
+        recent_commits: z.number().optional(),
+      },
+    },
+    async ({ repo_path, milestone_name, recent_commits }) => {
+      const result = await estimateMilestoneProgressTool({
+        repo_path,
+        milestone_name,
+        recent_commits,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_suggest_actions',
+    {
+      description: 'Suggest next engineering actions from current project memory and recent repository activity.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        limit: z.number().optional(),
+        filter_by_milestone: z.string().optional(),
+        recent_commits: z.number().optional(),
+      },
+    },
+    async ({ repo_path, limit, filter_by_milestone, recent_commits }) => {
+      const result = await suggestNextActionsTool({
+        repo_path,
+        limit,
+        filter_by_milestone,
+        recent_commits,
+      });
+
+      return {
+        content: toTextContent(result),
+        structuredContent: toStructuredContent(result),
+      };
+    }
+  );
+
+  server.registerTool(
+    'brain_analyze',
+    {
+      description: 'Run a broader project reflection pass across memory, milestones, and repository activity.',
+      inputSchema: {
+        repo_path: z.string().optional(),
+        depth: z.enum(['quick', 'full']).optional(),
+        recent_commits: z.number().optional(),
+      },
+    },
+    async ({ repo_path, depth, recent_commits }) => {
+      const result = await brainAnalyze({
+        repo_path,
+        depth,
+        recent_commits,
+      });
+
+      return {
+        content: [{ type: 'text', text: result.summary }],
         structuredContent: toStructuredContent(result),
       };
     }

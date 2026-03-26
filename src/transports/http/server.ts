@@ -2,6 +2,7 @@ import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { URL } from 'node:url';
 import { createHttpApiHandlers } from '../../service/api/index.js';
 import { createMcpHttpHandler } from '../mcp/server.js';
+import { renderUiCss, renderUiHtml, renderUiJs } from './ui.js';
 
 type JsonRecord = Record<string, unknown>;
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -25,6 +26,9 @@ const ROUTES: RouteDefinition[] = [
   { method: 'GET', path: '/', description: 'Describe the local Project Brain HTTP service.' },
   { method: 'GET', path: '/health', description: 'Return service health information.' },
   { method: 'GET', path: '/api', description: 'List HTTP API endpoints and supported query parameters.' },
+  { method: 'GET', path: '/ui', description: 'Open the Project Brain dashboard UI prototype.' },
+  { method: 'GET', path: '/ui/styles.css', description: 'Serve dashboard UI styles.' },
+  { method: 'GET', path: '/ui/app.js', description: 'Serve dashboard UI client logic.' },
   {
     method: 'GET',
     path: '/api/dashboard',
@@ -90,6 +94,21 @@ function sendJson(res: ServerResponse, statusCode: number, body: JsonRecord) {
     'access-control-allow-headers': 'Content-Type',
   });
   res.end(payload);
+}
+
+function sendText(
+  res: ServerResponse,
+  statusCode: number,
+  contentType: string,
+  body: string
+) {
+  res.writeHead(statusCode, {
+    'content-type': contentType,
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET,POST,PUT,OPTIONS',
+    'access-control-allow-headers': 'Content-Type',
+  });
+  res.end(body);
 }
 
 async function readJsonBody(req: IncomingMessage): Promise<JsonRecord> {
@@ -179,6 +198,9 @@ function getAllowedMethods(pathname: string): HttpMethod[] {
   if (pathname === '/mcp') {
     return ['GET', 'POST', 'DELETE'];
   }
+  if (pathname === '/ui' || pathname === '/ui/' || pathname === '/ui/styles.css' || pathname === '/ui/app.js') {
+    return ['GET'];
+  }
   if (pathname === '/' || pathname === '/health' || pathname === '/api') {
     return ['GET'];
   }
@@ -235,12 +257,28 @@ export function createHttpServer() {
         return;
       }
 
+      if (req.method === 'GET' && (pathname === '/ui' || pathname === '/ui/')) {
+        sendText(res, 200, 'text/html; charset=utf-8', renderUiHtml());
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/ui/styles.css') {
+        sendText(res, 200, 'text/css; charset=utf-8', renderUiCss());
+        return;
+      }
+
+      if (req.method === 'GET' && pathname === '/ui/app.js') {
+        sendText(res, 200, 'text/javascript; charset=utf-8', renderUiJs());
+        return;
+      }
+
       if (req.method === 'GET' && pathname === '/') {
         sendJson(res, 200, {
           service: 'project-brain-http',
           status: 'ok',
           transport: 'http',
           mcp_endpoint: '/mcp',
+          ui_endpoint: '/ui',
           endpoints: ROUTES,
         });
         return;
