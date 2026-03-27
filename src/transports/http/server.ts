@@ -13,6 +13,25 @@ interface RouteDefinition {
   description: string;
 }
 
+type RouteParams = Record<string, string>;
+
+interface RouteRequestContext {
+  req: IncomingMessage;
+  res: ServerResponse;
+  url: URL;
+  pathname: string;
+}
+
+interface RuntimeDeps {
+  api: ReturnType<typeof createHttpApiHandlers>;
+  mcpHandler: ReturnType<typeof createMcpHttpHandler>;
+}
+
+interface RouteHandlerDefinition extends RouteDefinition {
+  match(pathname: string): RouteParams | null;
+  handle(ctx: RouteRequestContext, params: RouteParams, deps: RuntimeDeps): Promise<void>;
+}
+
 class HttpError extends Error {
   statusCode: number;
 
@@ -195,35 +214,221 @@ function getAllowedOriginsFromEnv() {
 }
 
 function getAllowedMethods(pathname: string): HttpMethod[] {
-  if (pathname === '/mcp') {
-    return ['GET', 'POST', 'DELETE'];
+  const methods = new Set<HttpMethod>();
+  for (const route of ROUTE_HANDLERS) {
+    if (route.match(pathname)) {
+      methods.add(route.method);
+    }
   }
-  if (pathname === '/ui' || pathname === '/ui/' || pathname === '/ui/styles.css' || pathname === '/ui/app.js') {
-    return ['GET'];
-  }
-  if (pathname === '/' || pathname === '/health' || pathname === '/api') {
-    return ['GET'];
-  }
-  if (pathname === '/api/dashboard' || pathname === '/api/context') {
-    return ['GET'];
-  }
-  if (pathname.startsWith('/api/changes/') && pathname.endsWith('/context')) {
-    return ['GET'];
-  }
-  if (pathname === '/api/init' || pathname === '/api/memory/ingest') {
-    return ['POST'];
-  }
-  if (pathname === '/api/project-spec') {
-    return ['PUT'];
-  }
-  return [];
+  return Array.from(methods);
 }
+
+function matchExact(pathname: string): (input: string) => RouteParams | null {
+  return (input: string) => (input === pathname ? {} : null);
+}
+
+function matchAny(paths: string[]): (input: string) => RouteParams | null {
+  const allowed = new Set(paths);
+  return (input: string) => (allowed.has(input) ? {} : null);
+}
+
+function matchChangeContextPath(pathname: string): RouteParams | null {
+  const prefix = '/api/changes/';
+  const suffix = '/context';
+  if (!pathname.startsWith(prefix) || !pathname.endsWith(suffix)) {
+    return null;
+  }
+  const encodedId = pathname.slice(prefix.length, pathname.length - suffix.length);
+  return {
+    changeId: decodeURIComponent(encodedId),
+  };
+}
+
+const ROUTE_HANDLERS: RouteHandlerDefinition[] = [
+  {
+    method: 'GET',
+    path: '/mcp',
+    description: 'Open an MCP SSE stream for server-to-client messages or stream resumption.',
+    match: matchExact('/mcp'),
+    async handle({ req, res }, _params, deps) {
+      await deps.mcpHandler.handle(req, res);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/mcp',
+    description: 'Send MCP JSON-RPC requests over Streamable HTTP.',
+    match: matchExact('/mcp'),
+    async handle({ req, res }, _params, deps) {
+      await deps.mcpHandler.handle(req, res);
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/mcp',
+    description: 'Terminate an MCP session.',
+    match: matchExact('/mcp'),
+    async handle({ req, res }, _params, deps) {
+      await deps.mcpHandler.handle(req, res);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/ui',
+    description: 'Open the Project Brain dashboard UI prototype.',
+    match: matchAny(['/ui', '/ui/']),
+    async handle({ res }) {
+      sendText(res, 200, 'text/html; charset=utf-8', renderUiHtml());
+    },
+  },
+  {
+    method: 'GET',
+    path: '/ui/styles.css',
+    description: 'Serve dashboard UI styles.',
+    match: matchExact('/ui/styles.css'),
+    async handle({ res }) {
+      sendText(res, 200, 'text/css; charset=utf-8', renderUiCss());
+    },
+  },
+  {
+    method: 'GET',
+    path: '/ui/app.js',
+    description: 'Serve dashboard UI client logic.',
+    match: matchExact('/ui/app.js'),
+    async handle({ res }) {
+      sendText(res, 200, 'text/javascript; charset=utf-8', renderUiJs());
+    },
+  },
+  {
+    method: 'GET',
+    path: '/',
+    description: 'Describe the local Project Brain HTTP service.',
+    match: matchExact('/'),
+    async handle({ res }) {
+      sendJson(res, 200, {
+        service: 'project-brain-http',
+        status: 'ok',
+        transport: 'http',
+        mcp_endpoint: '/mcp',
+        ui_endpoint: '/ui',
+        endpoints: ROUTES,
+      });
+    },
+  },
+  {
+    method: 'GET',
+    path: '/health',
+    description: 'Return service health information.',
+    match: matchExact('/health'),
+    async handle({ res }) {
+      sendJson(res, 200, {
+        status: 'ok',
+        service: 'project-brain-http',
+        transport: 'http',
+      });
+    },
+  },
+  {
+    method: 'GET',
+    path: '/api',
+    description: 'List HTTP API endpoints and supported query parameters.',
+    match: matchExact('/api'),
+    async handle({ res }) {
+      sendJson(res, 200, {
+        service: 'project-brain-http',
+        base_path: '/api',
+        mcp_endpoint: '/mcp',
+        query_parameters: {
+          repo_path: 'Optional repository path for read routes.',
+          recent_commits: 'Optional commit window for dashboard or change context.',
+          include_deep_analysis: 'Optional boolean toggle for dashboard depth.',
+        },
+        endpoints: ROUTES.filter(route => route.path.startsWith('/api')),
+      });
+    },
+  },
+  {
+    method: 'GET',
+    path: '/api/dashboard',
+    description: 'Inspect memory, activity, and next actions for a repository.',
+    match: matchExact('/api/dashboard'),
+    async handle({ res, url }, _params, deps) {
+      const result = await deps.api.getDashboard({
+        repo_path: getRepoPath(url),
+        include_deep_analysis: parseBoolean(url.searchParams.get('include_deep_analysis')),
+        recent_commits: parseNumber(url.searchParams.get('recent_commits')),
+      });
+      sendJson(res, 200, result as unknown as JsonRecord);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/api/context',
+    description: 'Fetch lightweight project context for day-to-day execution.',
+    match: matchExact('/api/context'),
+    async handle({ res, url }, _params, deps) {
+      const result = await deps.api.getProjectContext({
+        repo_path: getRepoPath(url),
+      });
+      sendJson(res, 200, result as unknown as JsonRecord);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/api/changes/:changeId/context',
+    description: 'Fetch detailed execution context for one change.',
+    match: matchChangeContextPath,
+    async handle({ res, url }, params, deps) {
+      const changeId = params.changeId || '';
+      const result = await deps.api.getChangeContext({
+        repo_path: getRepoPath(url),
+        change_id: changeId,
+        recent_commits: parseNumber(url.searchParams.get('recent_commits')),
+      });
+      sendJson(res, 200, result as unknown as JsonRecord);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/api/init',
+    description: 'Initialize or update the project identity anchor.',
+    match: matchExact('/api/init'),
+    async handle({ req, res }, _params, deps) {
+      const body = await readJsonBody(req);
+      const result = await deps.api.initializeProject(body as unknown as Parameters<typeof deps.api.initializeProject>[0]);
+      sendJson(res, 200, result as unknown as JsonRecord);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/api/memory/ingest',
+    description: 'Ingest one structured memory record.',
+    match: matchExact('/api/memory/ingest'),
+    async handle({ req, res }, _params, deps) {
+      const body = await readJsonBody(req);
+      const result = await deps.api.ingestMemory(body as unknown as Parameters<typeof deps.api.ingestMemory>[0]);
+      sendJson(res, 200, result as unknown as JsonRecord);
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/api/project-spec',
+    description: 'Update the stable project spec.',
+    match: matchExact('/api/project-spec'),
+    async handle({ req, res }, _params, deps) {
+      const body = await readJsonBody(req);
+      const result = await deps.api.updateProjectSpec(body as unknown as Parameters<typeof deps.api.updateProjectSpec>[0]);
+      sendJson(res, 200, result as unknown as JsonRecord);
+    },
+  },
+];
 
 export function createHttpServer() {
   const api = createHttpApiHandlers();
   const mcpHandler = createMcpHttpHandler({
     allowedOrigins: getAllowedOriginsFromEnv(),
   });
+  const deps: RuntimeDeps = { api, mcpHandler };
 
   return createServer(async (req, res) => {
     try {
@@ -252,109 +457,19 @@ export function createHttpServer() {
         return;
       }
 
-      if (pathname === '/mcp') {
-        await mcpHandler.handle(req, res);
-        return;
-      }
+      const route = ROUTE_HANDLERS.find(candidate => {
+        if (candidate.method !== req.method) {
+          return false;
+        }
+        return candidate.match(pathname) !== null;
+      });
 
-      if (req.method === 'GET' && (pathname === '/ui' || pathname === '/ui/')) {
-        sendText(res, 200, 'text/html; charset=utf-8', renderUiHtml());
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/ui/styles.css') {
-        sendText(res, 200, 'text/css; charset=utf-8', renderUiCss());
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/ui/app.js') {
-        sendText(res, 200, 'text/javascript; charset=utf-8', renderUiJs());
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/') {
-        sendJson(res, 200, {
-          service: 'project-brain-http',
-          status: 'ok',
-          transport: 'http',
-          mcp_endpoint: '/mcp',
-          ui_endpoint: '/ui',
-          endpoints: ROUTES,
-        });
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/health') {
-        sendJson(res, 200, {
-          status: 'ok',
-          service: 'project-brain-http',
-          transport: 'http',
-        });
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/api') {
-        sendJson(res, 200, {
-          service: 'project-brain-http',
-          base_path: '/api',
-          mcp_endpoint: '/mcp',
-          query_parameters: {
-            repo_path: 'Optional repository path for read routes.',
-            recent_commits: 'Optional commit window for dashboard or change context.',
-            include_deep_analysis: 'Optional boolean toggle for dashboard depth.',
-          },
-          endpoints: ROUTES.filter(route => route.path.startsWith('/api')),
-        });
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/api/dashboard') {
-        const result = await api.getDashboard({
-          repo_path: getRepoPath(url),
-          include_deep_analysis: parseBoolean(url.searchParams.get('include_deep_analysis')),
-          recent_commits: parseNumber(url.searchParams.get('recent_commits')),
-        });
-        sendJson(res, 200, result as unknown as JsonRecord);
-        return;
-      }
-
-      if (req.method === 'GET' && pathname === '/api/context') {
-        const result = await api.getProjectContext({
-          repo_path: getRepoPath(url),
-        });
-        sendJson(res, 200, result as unknown as JsonRecord);
-        return;
-      }
-
-      if (req.method === 'GET' && pathname.startsWith('/api/changes/') && pathname.endsWith('/context')) {
-        const changeId = decodeURIComponent(pathname.replace(/^\/api\/changes\//, '').replace(/\/context$/, ''));
-        const result = await api.getChangeContext({
-          repo_path: getRepoPath(url),
-          change_id: changeId,
-          recent_commits: parseNumber(url.searchParams.get('recent_commits')),
-        });
-        sendJson(res, 200, result as unknown as JsonRecord);
-        return;
-      }
-
-      if (req.method === 'POST' && pathname === '/api/init') {
-        const body = await readJsonBody(req);
-        const result = await api.initializeProject(body as unknown as Parameters<typeof api.initializeProject>[0]);
-        sendJson(res, 200, result as unknown as JsonRecord);
-        return;
-      }
-
-      if (req.method === 'POST' && pathname === '/api/memory/ingest') {
-        const body = await readJsonBody(req);
-        const result = await api.ingestMemory(body as unknown as Parameters<typeof api.ingestMemory>[0]);
-        sendJson(res, 200, result as unknown as JsonRecord);
-        return;
-      }
-
-      if (req.method === 'PUT' && pathname === '/api/project-spec') {
-        const body = await readJsonBody(req);
-        const result = await api.updateProjectSpec(body as unknown as Parameters<typeof api.updateProjectSpec>[0]);
-        sendJson(res, 200, result as unknown as JsonRecord);
+      if (route) {
+        const params = route.match(pathname);
+        if (!params) {
+          throw new HttpError(500, 'Route matcher produced inconsistent result.');
+        }
+        await route.handle({ req, res, url, pathname }, params, deps);
         return;
       }
 

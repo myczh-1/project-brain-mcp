@@ -113,7 +113,18 @@ function validateConfirmed(input: IngestMemoryInput): string | null {
   return null;
 }
 
-function validatePayload(type: MemoryType, payload: unknown): string | null {
+interface MemoryHandler {
+  validate(payload: unknown): string | null;
+  warnings(payload: unknown): string[];
+  execute(args: {
+    cwd: string;
+    payload: unknown;
+    source?: string;
+    type: MemoryType;
+  }): Promise<Omit<IngestMemoryOutput, 'recorded_type' | 'warnings'>>;
+}
+
+function validateSharedPayload(payload: unknown): string | null {
   if (!isObject(payload)) {
     return 'payload must be an object.';
   }
@@ -121,76 +132,24 @@ function validatePayload(type: MemoryType, payload: unknown): string | null {
     return 'payload must contain at least one meaningful value.';
   }
 
-  switch (type) {
-    case 'project_spec':
-      return asTrimmedString(payload.product_goal) ? null : 'project_spec.payload.product_goal is required.';
-    case 'change_spec':
-      if (!asTrimmedString(payload.title)) return 'change_spec.payload.title is required.';
-      if (!asTrimmedString(payload.summary)) return 'change_spec.payload.summary is required.';
-      return null;
-    case 'decision':
-      if (!asTrimmedString(payload.title)) return 'decision.payload.title is required.';
-      if (!asTrimmedString(payload.decision)) return 'decision.payload.decision is required.';
-      if (!asTrimmedString(payload.rationale)) return 'decision.payload.rationale is required.';
-      return null;
-    case 'note':
-      return asTrimmedString(payload.note) ? null : 'note.payload.note is required.';
-    case 'progress':
-      if (!asTrimmedString(payload.summary)) return 'progress.payload.summary is required.';
-      if (!asTrimmedString(payload.confidence)) return 'progress.payload.confidence is required.';
-      return null;
-    default:
-      return 'Unsupported memory type.';
-  }
+  return null;
 }
 
-function warningsFor(type: MemoryType, payload: MemoryPayload): string[] {
-  const warnings: string[] = [];
-
-  if (type === 'note') {
-    const notePayload = payload as NotePayload;
-    if (looksLikeDecision(notePayload.note)) {
-      warnings.push('Note content looks like a decision. Consider ingesting it as type="decision".');
-    }
-  }
-
-  if (type === 'progress') {
-    const progressPayload = payload as ProgressPayload;
-    if (!progressPayload.related_change_id) {
-      warnings.push('Progress was recorded without related_change_id.');
-    }
-  }
-
-  return warnings;
-}
-
-export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemoryOutput> {
-  const cwd = input.repo_path || process.cwd();
-  const type = input.memory.type;
-  const payload = input.memory.payload;
-
-  const confirmError = validateConfirmed(input);
-  if (confirmError) {
-    return {
-      status: 'rejected',
-      recorded_type: type,
-      message: confirmError,
-    };
-  }
-
-  const validationError = validatePayload(type, payload);
-  if (validationError) {
-    return {
-      status: 'rejected',
-      recorded_type: type,
-      message: validationError,
-    };
-  }
-
-  const warnings = warningsFor(type, payload);
-
-  switch (type) {
-    case 'project_spec': {
+const MEMORY_HANDLERS: Record<MemoryType, MemoryHandler> = {
+  project_spec: {
+    validate(payload) {
+      const sharedError = validateSharedPayload(payload);
+      if (sharedError) {
+        return sharedError;
+      }
+      return asTrimmedString((payload as ProjectSpecPayload).product_goal)
+        ? null
+        : 'project_spec.payload.product_goal is required.';
+    },
+    warnings() {
+      return [];
+    },
+    async execute({ cwd, payload, source, type }) {
       if (readProjectSpec(cwd)) {
         return {
           status: 'rejected',
@@ -199,15 +158,16 @@ export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemo
         };
       }
 
+      const projectSpecPayload = payload as ProjectSpecPayload;
       const result = await defineProjectSpec({
         repo_path: cwd,
         spec: {
-          product_goal: asTrimmedString((payload as ProjectSpecPayload).product_goal),
-          non_goals: asStringArray((payload as ProjectSpecPayload).non_goals),
-          architecture_rules: asStringArray((payload as ProjectSpecPayload).architecture_rules),
-          coding_rules: asStringArray((payload as ProjectSpecPayload).coding_rules),
-          agent_rules: asStringArray((payload as ProjectSpecPayload).agent_rules),
-          source: asTrimmedString(input.memory.source) || 'gpt_structured_output',
+          product_goal: asTrimmedString(projectSpecPayload.product_goal),
+          non_goals: asStringArray(projectSpecPayload.non_goals),
+          architecture_rules: asStringArray(projectSpecPayload.architecture_rules),
+          coding_rules: asStringArray(projectSpecPayload.coding_rules),
+          agent_rules: asStringArray(projectSpecPayload.agent_rules),
+          source: asTrimmedString(source) || 'gpt_structured_output',
         },
       });
 
@@ -216,12 +176,29 @@ export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemo
         recorded_type: type,
         routed_to: 'brain_define_project_spec',
         message: 'Project spec ingested successfully.',
-        warnings: warnings.length > 0 ? warnings : undefined,
         created_id: result.project_spec_path,
       };
-    }
-
-    case 'change_spec': {
+    },
+  },
+  change_spec: {
+    validate(payload) {
+      const sharedError = validateSharedPayload(payload);
+      if (sharedError) {
+        return sharedError;
+      }
+      const changePayload = payload as ChangeSpecPayload;
+      if (!asTrimmedString(changePayload.title)) {
+        return 'change_spec.payload.title is required.';
+      }
+      if (!asTrimmedString(changePayload.summary)) {
+        return 'change_spec.payload.summary is required.';
+      }
+      return null;
+    },
+    warnings() {
+      return [];
+    },
+    async execute({ cwd, payload, type }) {
       const changePayload = payload as ChangeSpecPayload;
       if (changePayload.id && changeExists(changePayload.id, cwd)) {
         return {
@@ -253,11 +230,31 @@ export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemo
         routed_to: 'brain_create_change',
         created_id: result.change.id,
         message: 'Change spec ingested successfully.',
-        warnings: warnings.length > 0 ? warnings : undefined,
       };
-    }
-
-    case 'decision': {
+    },
+  },
+  decision: {
+    validate(payload) {
+      const sharedError = validateSharedPayload(payload);
+      if (sharedError) {
+        return sharedError;
+      }
+      const decisionPayload = payload as DecisionPayload;
+      if (!asTrimmedString(decisionPayload.title)) {
+        return 'decision.payload.title is required.';
+      }
+      if (!asTrimmedString(decisionPayload.decision)) {
+        return 'decision.payload.decision is required.';
+      }
+      if (!asTrimmedString(decisionPayload.rationale)) {
+        return 'decision.payload.rationale is required.';
+      }
+      return null;
+    },
+    warnings() {
+      return [];
+    },
+    async execute({ cwd, payload, type }) {
       const decisionPayload = payload as DecisionPayload;
       const result = await logDecision({
         repo_path: cwd,
@@ -278,11 +275,27 @@ export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemo
         routed_to: 'brain_log_decision',
         created_id: result.decision.id,
         message: 'Decision ingested successfully.',
-        warnings: warnings.length > 0 ? warnings : undefined,
       };
-    }
-
-    case 'note': {
+    },
+  },
+  note: {
+    validate(payload) {
+      const sharedError = validateSharedPayload(payload);
+      if (sharedError) {
+        return sharedError;
+      }
+      return asTrimmedString((payload as NotePayload).note)
+        ? null
+        : 'note.payload.note is required.';
+    },
+    warnings(payload) {
+      const notePayload = payload as NotePayload;
+      if (looksLikeDecision(notePayload.note)) {
+        return ['Note content looks like a decision. Consider ingesting it as type="decision".'];
+      }
+      return [];
+    },
+    async execute({ cwd, payload, type }) {
       const notePayload = payload as NotePayload;
       const result = await projectCaptureNote({
         repo_path: cwd,
@@ -297,11 +310,32 @@ export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemo
         routed_to: 'brain_capture_note',
         created_id: result.note_id,
         message: 'Note ingested successfully.',
-        warnings: warnings.length > 0 ? warnings : undefined,
       };
-    }
-
-    case 'progress': {
+    },
+  },
+  progress: {
+    validate(payload) {
+      const sharedError = validateSharedPayload(payload);
+      if (sharedError) {
+        return sharedError;
+      }
+      const progressPayload = payload as ProgressPayload;
+      if (!asTrimmedString(progressPayload.summary)) {
+        return 'progress.payload.summary is required.';
+      }
+      if (!asTrimmedString(progressPayload.confidence)) {
+        return 'progress.payload.confidence is required.';
+      }
+      return null;
+    },
+    warnings(payload) {
+      const progressPayload = payload as ProgressPayload;
+      if (!progressPayload.related_change_id) {
+        return ['Progress was recorded without related_change_id.'];
+      }
+      return [];
+    },
+    async execute({ cwd, payload, type }) {
       const progressPayload = payload as ProgressPayload;
       const result = await recordProgress({
         repo_path: cwd,
@@ -321,8 +355,54 @@ export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemo
         routed_to: 'brain_record_progress',
         created_id: result.progress_id,
         message: `Progress ingested successfully as ${result.recorded_type}.`,
-        warnings: warnings.length > 0 ? warnings : undefined,
       };
-    }
+    },
+  },
+};
+
+export async function ingestMemory(input: IngestMemoryInput): Promise<IngestMemoryOutput> {
+  const cwd = input.repo_path || process.cwd();
+  const type = input.memory.type;
+  const payload = input.memory.payload;
+  const handler = MEMORY_HANDLERS[type as keyof typeof MEMORY_HANDLERS];
+
+  if (!handler) {
+    return {
+      status: 'rejected',
+      recorded_type: type,
+      message: 'Unsupported memory type.',
+    };
   }
+
+  const confirmError = validateConfirmed(input);
+  if (confirmError) {
+    return {
+      status: 'rejected',
+      recorded_type: type,
+      message: confirmError,
+    };
+  }
+
+  const validationError = handler.validate(payload);
+  if (validationError) {
+    return {
+      status: 'rejected',
+      recorded_type: type,
+      message: validationError,
+    };
+  }
+
+  const warnings = handler.warnings(payload);
+  const result = await handler.execute({
+    cwd,
+    payload,
+    source: input.memory.source,
+    type,
+  });
+
+  return {
+    ...result,
+    recorded_type: type,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
 }
