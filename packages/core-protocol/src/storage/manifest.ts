@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { atomicWriteFile } from './fileOps.js';
 
 export interface Manifest {
   project_name: string;
@@ -71,6 +72,6 @@ export function readManifest(cwd?: string): Manifest | null {
 export function writeManifest(manifest: Manifest, cwd?: string): string {
   ensureBrainDir(cwd);
   const manifestPath = getManifestPath(cwd);
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
+  atomicWriteFile(manifestPath, JSON.stringify(manifest, null, 2));
   return manifestPath;
 }

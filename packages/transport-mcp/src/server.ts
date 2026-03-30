@@ -17,7 +17,7 @@ function toStructuredContent(payload: unknown) {
 
 function createProjectBrainMcpServer() {
   const runtime = createRuntimeService();
-  const context = createContextService({ runtime });
+  const context = createContextService();
   const {
     initializeProject: projectInit,
     ingestMemory,
@@ -51,14 +51,15 @@ function createProjectBrainMcpServer() {
         },
       },
       instructions:
-        'Project Brain is the durable memory, development-recording, and reflection layer for AI-assisted software development. Prefer this loop: read brain_context before substantial implementation, create or update a change when starting meaningful work, record decisions and progress during execution, capture notes when needed, and use dashboard/activity/analysis tools to reflect development reality back into project memory.',
+        'Project Brain is the durable memory, development-recording, and reflection layer for AI-assisted software development. Use the Project Brain protocol as the source of truth. In practice: read `brain_context` before substantial work, re-read `brain_change_context`, `brain_context`, or `brain_dashboard` before resuming work or writing from stale context, record meaningful execution updates while work is happening, and reflect larger outcomes before concluding.',
     }
   );
 
   server.registerTool(
     'brain_dashboard',
     {
-      description: 'Inspect the current project memory and status through a unified dashboard view.',
+      description:
+        'Inspect the current project memory and status through a unified dashboard view before resuming work, reconciling current state, or writing broader project updates.',
       inputSchema: {
         repo_path: z.string().optional(),
         include_deep_analysis: z.boolean().optional(),
@@ -442,7 +443,7 @@ function createProjectBrainMcpServer() {
     'brain_change_context',
     {
       description:
-        'Get detailed execution context for a specific change before making a larger decision or implementation move.',
+        'Get detailed execution context for a specific change before resuming, extending, or updating that change so reads happen before additional progress writes.',
       inputSchema: {
         repo_path: z.string().optional(),
         change_id: z.string(),
@@ -493,7 +494,8 @@ function createProjectBrainMcpServer() {
   server.registerTool(
     'brain_context',
     {
-      description: 'Get lightweight project context for everyday coding conversations.',
+      description:
+        'Get lightweight project context to hydrate current goals, active changes, recent decisions, and recent progress before planning work or recording new updates.',
       inputSchema: {
         repo_path: z.string().optional(),
       },

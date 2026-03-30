@@ -46,7 +46,7 @@ The protocol contract for this state now lives in `protocol/`:
 - `protocol/schemas/source/*.json`
 - `protocol/schemas/derived/*.json`
 
-This protocol layer is the intended lightweight integration surface. Runtime, HTTP, MCP, and UI packages are implementations over that contract.
+This protocol layer is the intended contract surface and lightweight integration surface. Runtime, HTTP, MCP, and UI packages are implementations over that contract.
 
 Each layer has a different responsibility:
 
@@ -60,12 +60,12 @@ Each layer has a different responsibility:
 
 ## Recommended Loop
 
-The intended operating loop is:
+The protocol defines the durable contract. The public loop below is a high-level summary of how implementations and integrations typically use that contract:
 
 1. Bring in project signals from user input, discussion outcomes, code activity, or development work.
 2. Analyze those signals and turn them into explicit memory records.
-3. Keep writing progress, decisions, notes, and changes as work continues.
-4. Use `brain_context` and `brain_change_context` to execute against accumulated memory.
+3. Re-read the current durable state before resuming work or before writes when the current view may be stale.
+4. Keep writing progress, decisions, notes, and changes as work continues.
 5. Reflect stable conclusions back into `project-spec`.
 
 Project Brain is strongest when the team keeps the boundary clear:
@@ -76,16 +76,17 @@ Project Brain is strongest when the team keeps the boundary clear:
 
 ## Agent Protocol
 
-Project Brain now defines a default assistant operating protocol in [docs/agent-protocol.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/agent-protocol.md).
+Project Brain exposes its core rules through the protocol directory and then provides an agent-facing profile in [docs/agent-protocol.md](https://github.com/myczh-1/project-brain-mcp/blob/main/docs/agent-protocol.md) for MCP-connected assistants.
 
 If an MCP-aware coding assistant is connected to Project Brain, the expected default loop is:
 
 1. Read `brain_context` before substantial implementation.
 2. Use `brain_start_work` or create/update a `change` for meaningful work.
-3. Use `brain_checkpoint` or record `decision`, `progress`, or `note` while work is happening.
-4. Use `brain_finish_work` or run a reflection step before concluding larger work.
+3. Re-read `brain_change_context`, `brain_context`, or `brain_dashboard` before resuming work or writing state from uncertain context.
+4. Use `brain_checkpoint` or record `decision`, `progress`, or `note` while work is happening.
+5. Use `brain_finish_work` or run a reflection step before concluding larger work.
 
-This protocol is meant to be host-agnostic. Skills or host-specific prompts can strengthen compliance, but MCP remains the primary integration surface.
+That agent-facing profile is derived from the protocol contract. Skills or host-specific prompts can strengthen compliance, but they should remain wrappers over the protocol/profile rather than separate sources of truth.
 
 Integration helpers:
 

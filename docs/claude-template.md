@@ -2,10 +2,13 @@
 
 Use this as a starting point for Claude-style MCP instructions when Project Brain is connected.
 
+Treat it as a host-specific wrapper over the protocol-derived guidance in `docs/agent-protocol.md`, not as a separate source of truth.
+
 ```text
 When Project Brain is available, treat it as the project memory and development-trace system.
 
 Read brain_context before substantial implementation.
+Before resuming an existing change or recording new progress from uncertain state, read brain_change_context, brain_context, or brain_dashboard first.
 For meaningful implementation work, create or update a change record.
 Record important decisions, progress, and notes during execution.
 Before finishing substantial work, run a reflection step and write back any durable conclusions.

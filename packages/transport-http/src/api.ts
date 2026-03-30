@@ -18,7 +18,7 @@ export interface HttpApiHandlers {
 
 export function createHttpApiHandlers(): HttpApiHandlers {
   const runtime = createRuntimeService();
-  const context = createContextService({ runtime });
+  const context = createContextService();
   return {
     initializeProject: runtime.initializeProject,
     getDashboard: context.getDashboard,

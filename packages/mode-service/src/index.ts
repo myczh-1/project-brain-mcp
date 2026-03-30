@@ -1,10 +1,10 @@
 import { createContextService } from '../../context/src/index.js';
-import { createRuntime, createRuntimeService } from '../../core-protocol/src/index.js';
+import { createRuntime, createRuntimeService } from '../../runtime/src/index.js';
 import { createHttpServer } from '../../transport-http/src/index.js';
 import { createMcpHttpHandler } from '../../transport-mcp/src/index.js';
 import { main as startServer } from '../../app/src/index.js';
 import type { ContextService } from '../../context/src/index.js';
-import type { RuntimeService } from '../../core-protocol/src/index.js';
+import type { RuntimeService } from '../../runtime/src/index.js';
 
 export { createHttpServer } from '../../transport-http/src/index.js';
 export { createMcpHttpHandler } from '../../transport-mcp/src/index.js';
@@ -22,7 +22,7 @@ export interface ServiceMode {
 export function createServiceMode(defaultRepoPath?: string): ServiceMode {
   const runtimeService = createRuntimeService();
   const runtime = createRuntime(defaultRepoPath, runtimeService);
-  const contextService = createContextService({ runtime: runtimeService });
+  const contextService = createContextService();
 
   return {
     runtime,

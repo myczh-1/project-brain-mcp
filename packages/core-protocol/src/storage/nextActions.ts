@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { atomicWriteFile } from './fileOps.js';
 
 export interface NextAction {
   id: string;
@@ -47,12 +47,6 @@ export function appendNextAction(action: NextAction, cwd?: string): void {
   ensureBrainDir(cwd);
   const actionsPath = getNextActionsPath(cwd);
   fs.appendFileSync(actionsPath, JSON.stringify(action) + '\n', 'utf-8');
-}
-
-function atomicWriteFile(filePath: string, content: string): void {
-  const tmpPath = path.join(os.tmpdir(), `${path.basename(filePath)}.${process.pid}.${Date.now()}.tmp`);
-  fs.writeFileSync(tmpPath, content, 'utf-8');
-  fs.renameSync(tmpPath, filePath);
 }
 
 export function writeNextActions(actions: NextAction[], cwd?: string): void {

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { atomicWriteFile } from './fileOps.js';
 
 export interface ProjectSpec {
   product_goal: string;
@@ -31,6 +32,6 @@ export function readProjectSpec(cwd?: string): ProjectSpec | null {
 export function writeProjectSpec(projectSpec: ProjectSpec, cwd?: string): string {
   ensureBrainDir(cwd);
   const projectSpecPath = getProjectSpecPath(cwd);
-  fs.writeFileSync(projectSpecPath, JSON.stringify(projectSpec, null, 2), 'utf-8');
+  atomicWriteFile(projectSpecPath, JSON.stringify(projectSpec, null, 2));
   return projectSpecPath;
 }

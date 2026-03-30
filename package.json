@@ -5,8 +5,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
-      "import": "./dist/src/index.js"
+      "types": "./dist/packages/mode-service/src/index.d.ts",
+      "import": "./dist/packages/mode-service/src/index.js"
     },
     "./core-protocol": {
       "types": "./dist/packages/core-protocol/src/index.d.ts",
@@ -38,7 +38,7 @@
     }
   },
   "bin": {
-    "project-brain": "./dist/src/index.js"
+    "project-brain": "./dist/packages/mode-service/src/cli.js"
   },
   "files": [
     "dist",
@@ -46,8 +46,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "dev": "tsx watch src/app/serverMain.ts",
-    "dev:http": "tsx watch src/app/serverMain.ts",
+    "dev": "tsx watch packages/app/src/serverMain.ts",
+    "dev:http": "tsx watch packages/app/src/serverMain.ts",
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },

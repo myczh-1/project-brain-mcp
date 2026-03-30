@@ -9,6 +9,7 @@ Lightweight mode does not mean:
 Lightweight mode means:
 
 - understand the Project Brain protocol
+- read relevant current `.project-brain/*` state before making durable updates
 - write legal `.project-brain/*` state directly
 - optionally run a very thin validator or helper
 - avoid depending on the full runtime implementation
@@ -44,10 +45,21 @@ That is enough to generate valid Project Brain state.
 For a coding assistant or skill:
 
 1. Read protocol docs and schemas.
-2. Decide which record type to emit.
-3. Serialize valid JSON or NDJSON.
-4. Write directly into `.project-brain/`.
-5. Optionally validate against the schema set.
+2. Read the current repository state for the target records you may update.
+3. Decide which record type to emit.
+4. Re-check whether your planned write still matches the current stored state if the work involved a pause, handoff, or additional reasoning step.
+5. Serialize valid JSON or NDJSON.
+6. Write directly into `.project-brain/`.
+7. Optionally validate against the schema set.
+
+Safe default:
+
+- if you are not sure whether your view of `.project-brain/*` is current, read first and then write
+
+Read guidance:
+
+- for `project-spec.json`, `manifest.json`, `changes/<id>.json`, and `milestones.json`, read the current snapshot before replacing it
+- for `progress.ndjson`, `decisions.ndjson`, and `notes.ndjson`, read relevant recent state when continuing existing work so new entries do not assume outdated context
 
 ## Example: Append A Decision
 
@@ -77,6 +89,8 @@ Write `.project-brain/changes/extract-auth-core.json`:
   "updated_at": "2026-03-27T07:50:23.851Z"
 }
 ```
+
+Before replacing that file, read the existing `changes/extract-auth-core.json` snapshot first so the new record reflects the latest stored state rather than an outdated local assumption.
 
 ## What Lightweight Mode Does Not Need
 

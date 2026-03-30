@@ -59,6 +59,8 @@ Minimal protocol queries are state reads over canonical stored objects.
 - `list_milestones`
 - `get_state`
 
+These queries are the read side of the protocol. Producers should use them, or equivalent direct file reads, before writes when stale state could change the resulting durable record.
+
 ## Lightweight Producer Guidance
 
 A lightweight producer does not need to implement the query surface or any runtime workflow helper.
@@ -68,3 +70,9 @@ It only needs to know:
 - which file each object maps to
 - which schema each object must satisfy
 - which write mode applies to that object
+
+However, safe lightweight production still depends on the query model conceptually:
+
+- before `write_manifest`, `write_project_spec`, `write_change`, or `write_milestones`, read the current target state first
+- before `append_progress`, `append_decision`, or `append_note` while continuing existing work, read relevant current state if assumptions may be stale
+- `get_state` is the highest-level query shape for producers that want one refresh step before deciding what to write

@@ -2,10 +2,13 @@
 
 Use this as a starting point for Codex-style agent instructions when Project Brain is installed as an MCP server.
 
+Treat it as a host-specific wrapper over the protocol-derived guidance in `docs/agent-protocol.md`, not as a separate source of truth.
+
 ```text
 Use Project Brain as the durable memory and development-recording layer for this repository.
 
 Before substantial implementation, call brain_context.
+Before resuming an existing change or recording new progress from uncertain state, call brain_change_context, brain_context, or brain_dashboard first.
 When starting meaningful work, create or update a change.
 During execution, record concrete decisions, progress, and notes through Project Brain instead of leaving them only in chat.
 Before concluding substantial work, run a reflection step and update the relevant change or memory records.

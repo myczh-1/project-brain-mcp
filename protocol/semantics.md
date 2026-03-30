@@ -44,6 +44,16 @@ Derived artifacts may be documented as optional extensions, but they are not req
 - Writers should not partially patch JSON snapshot files in place.
 - Writers should not rewrite NDJSON history except during explicit repair or migration work.
 
+## Read-Before-Write Rule
+
+Protocol v0 expects producers to refresh their view of durable state before emitting new writes when stale state would change the result.
+
+- Before writing a snapshot object such as `manifest`, `project_spec`, `change`, or `milestone`, a producer should read the current stored state for that target first.
+- Before appending `progress`, `decision`, or `note` as part of continuing existing work, a producer should read the relevant current state when it may be operating on stale assumptions.
+- If a producer has not checked current state recently and is about to update durable memory, the safe default is read first and then write.
+
+This rule matters because snapshot files use full replacement semantics and Protocol v0 otherwise assumes last write wins.
+
 ## Referential Integrity
 
 Protocol v0 uses soft references.
@@ -139,6 +149,7 @@ Protocol version is explicit at the contract level even though persisted records
 A protocol-native lightweight producer should:
 
 - write valid JSON or NDJSON only
+- refresh relevant current state before writes that could be invalidated by stale assumptions
 - respect append-only vs snapshot behavior
 - use legal enum values
 - avoid inventing undocumented fields

@@ -1,4 +1,3 @@
-import { createRuntimeService, type RuntimeService } from '../../runtime/src/index.js';
 import { brainAnalyze, type BrainAnalyzeInput, type BrainAnalyzeOutput } from './analysis/brainAnalyze.js';
 import { finishWork, type FinishWorkInput, type FinishWorkOutput } from './analysis/finishWork.js';
 import { projectRecentActivity, type RecentActivityInput, type RecentActivityOutput } from './analysis/recentActivity.js';
@@ -17,13 +16,7 @@ export interface ContextService {
   finishWork(input: FinishWorkInput): Promise<FinishWorkOutput>;
 }
 
-interface ContextServiceOptions {
-  runtime?: RuntimeService;
-}
-
-export function createContextService(options: ContextServiceOptions = {}): ContextService {
-  options.runtime || createRuntimeService();
-
+export function createContextService(): ContextService {
   return {
     getDashboard: brainDashboard,
     getProjectContext: projectContext,

@@ -1,4 +1,4 @@
-import { createRuntime, createRuntimeService } from '../../core-protocol/src/index.js';
+import { createRuntime, createRuntimeService } from '../../runtime/src/index.js';
 import type {
   RuntimeCommand,
   RuntimeCommandResult,
@@ -7,7 +7,7 @@ import type {
   RuntimeQuery,
   RuntimeQueryResult,
   RuntimeService,
-} from '../../core-protocol/src/index.js';
+} from '../../runtime/src/index.js';
 
 export type {
   RuntimeCommand,

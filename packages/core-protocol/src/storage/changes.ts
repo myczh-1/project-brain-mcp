@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { atomicWriteFile } from './fileOps.js';
 
 export type ChangeStatus = 'proposed' | 'active' | 'done' | 'dropped';
 
@@ -79,6 +80,6 @@ export function readAllChanges(cwd?: string): ChangeSpec[] {
 export function writeChange(change: ChangeSpec, cwd?: string): string {
   ensureChangesDir(cwd);
   const filePath = getChangePath(change.id, cwd);
-  fs.writeFileSync(filePath, JSON.stringify(change, null, 2), 'utf-8');
+  atomicWriteFile(filePath, JSON.stringify(change, null, 2));
   return filePath;
 }

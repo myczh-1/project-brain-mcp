@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { atomicWriteFile } from './fileOps.js';
 
 export interface Milestone {
   name: string;
@@ -35,12 +36,6 @@ export function readMilestones(cwd?: string): Milestone[] {
   } catch {
     return [];
   }
-}
-
-function atomicWriteFile(filePath: string, content: string): void {
-  const tmpPath = filePath + `.tmp.${process.pid}.${Date.now()}`;
-  fs.writeFileSync(tmpPath, content, 'utf-8');
-  fs.renameSync(tmpPath, filePath);
 }
 
 export function writeMilestones(milestones: Milestone[], cwd?: string): void {
