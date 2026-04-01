@@ -1,4 +1,4 @@
-import { createRuntime, createRuntimeService } from '../../runtime/src/index.js';
+import { createRuntime, createRuntimeService } from '@myczh/project-brain/application';
 import type {
   RuntimeCommand,
   RuntimeCommandResult,
@@ -7,7 +7,7 @@ import type {
   RuntimeQuery,
   RuntimeQueryResult,
   RuntimeService,
-} from '../../runtime/src/index.js';
+} from '@myczh/project-brain/application';
 
 export type {
   RuntimeCommand,

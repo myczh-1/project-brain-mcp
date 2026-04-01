@@ -1,6 +1,4 @@
-import { calculateHotPaths } from '../../../core-protocol/src/git/hotPaths.js';
-import { parseLog, parseLogSinceDays, type Commit } from '../../../core-protocol/src/git/parseLog.js';
-import type { HotPath } from '../../../core-protocol/src/git/hotPaths.js';
+import { calculateHotPaths, parseLog, parseLogSinceDays, type Commit, type HotPath } from '@myczh/project-brain/core-protocol/git';
 
 export interface RecentActivityInput {
   limit?: number;

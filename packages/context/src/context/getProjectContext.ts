@@ -1,12 +1,14 @@
-import { calculateHotPaths } from '../../../core-protocol/src/git/hotPaths.js';
-import { parseLog } from '../../../core-protocol/src/git/parseLog.js';
-import { generateContextText } from '../../../core-protocol/src/understanding/contextTemplate.js';
-import { readDecisions } from '../../../core-protocol/src/storage/decisions.js';
-import { buildFallbackManifest, readManifest } from '../../../core-protocol/src/storage/manifest.js';
-import { readMilestones } from '../../../core-protocol/src/storage/milestones.js';
-import { readNotes } from '../../../core-protocol/src/storage/notes.js';
-import { readProgress } from '../../../core-protocol/src/storage/progress.js';
-import { readProjectSpec } from '../../../core-protocol/src/storage/projectSpec.js';
+import { calculateHotPaths, parseLog } from '@myczh/project-brain/core-protocol/git';
+import {
+  buildFallbackManifest,
+  readDecisions,
+  readManifest,
+  readMilestones,
+  readNotes,
+  readProgress,
+  readProjectSpec,
+} from '@myczh/project-brain/core-protocol/storage';
+import { generateContextText } from '@myczh/project-brain/core-protocol/understanding';
 
 export interface ProjectContextInput {
   repo_path?: string;

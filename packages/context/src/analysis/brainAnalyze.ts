@@ -1,13 +1,23 @@
-import { calculateHotPaths, type HotPath } from '../../../core-protocol/src/git/hotPaths.js';
-import { parseLog, type Commit } from '../../../core-protocol/src/git/parseLog.js';
-import { estimateProgressOverview, type Completion, type Momentum, type StalenessRisk } from '../../../core-protocol/src/understanding/estimateProgress.js';
-import { inferFocus, inferMilestoneSignals } from '../../../core-protocol/src/understanding/inferFocus.js';
-import { recommendNextActions } from '../../../core-protocol/src/understanding/recommendActions.js';
-import { readDecisions } from '../../../core-protocol/src/storage/decisions.js';
-import { buildFallbackManifest, readManifest } from '../../../core-protocol/src/storage/manifest.js';
-import { readMilestones, upsertInferredMilestones, type Milestone } from '../../../core-protocol/src/storage/milestones.js';
-import { type NextAction } from '../../../core-protocol/src/storage/nextActions.js';
-import { readProgress } from '../../../core-protocol/src/storage/progress.js';
+import { calculateHotPaths, parseLog, type Commit, type HotPath } from '@myczh/project-brain/core-protocol/git';
+import {
+  buildFallbackManifest,
+  readDecisions,
+  readManifest,
+  readMilestones,
+  readProgress,
+  upsertInferredMilestones,
+  type Milestone,
+  type NextAction,
+} from '@myczh/project-brain/core-protocol/storage';
+import {
+  estimateProgressOverview,
+  inferFocus,
+  inferMilestoneSignals,
+  recommendNextActions,
+  type Completion,
+  type Momentum,
+  type StalenessRisk,
+} from '@myczh/project-brain/core-protocol/understanding';
 
 export interface BrainAnalyzeInput {
   repo_path?: string;

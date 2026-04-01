@@ -1,16 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { calculateHotPaths } from '../../../core-protocol/src/git/hotPaths.js';
-import { parseLog } from '../../../core-protocol/src/git/parseLog.js';
-import { recommendNextActions } from '../../../core-protocol/src/understanding/recommendActions.js';
-import { readChange, type ChangeSpec } from '../../../core-protocol/src/storage/changes.js';
-import { readDecisions } from '../../../core-protocol/src/storage/decisions.js';
-import { buildFallbackManifest, readManifest } from '../../../core-protocol/src/storage/manifest.js';
-import { readMilestones } from '../../../core-protocol/src/storage/milestones.js';
-import { readNotes } from '../../../core-protocol/src/storage/notes.js';
-import { readProgress } from '../../../core-protocol/src/storage/progress.js';
-import { readProjectSpec } from '../../../core-protocol/src/storage/projectSpec.js';
-import { getRepoRootPath } from '../../../core-protocol/src/storage/repoRoot.js';
+import { calculateHotPaths, parseLog } from '@myczh/project-brain/core-protocol/git';
+import {
+  buildFallbackManifest,
+  getRepoRootPath,
+  readChange,
+  readDecisions,
+  readManifest,
+  readMilestones,
+  readNotes,
+  readProgress,
+  readProjectSpec,
+  type ChangeSpec,
+} from '@myczh/project-brain/core-protocol/storage';
+import { recommendNextActions } from '@myczh/project-brain/core-protocol/understanding';
 
 export interface ChangeContextInput {
   change_id: string;

@@ -1,37 +1,52 @@
-import { readChange, readAllChanges } from '../../core-protocol/src/storage/changes.js';
-import { readDecisions } from '../../core-protocol/src/storage/decisions.js';
-import { readManifest } from '../../core-protocol/src/storage/manifest.js';
-import { readMilestones } from '../../core-protocol/src/storage/milestones.js';
-import { readNotes } from '../../core-protocol/src/storage/notes.js';
-import { readProgress } from '../../core-protocol/src/storage/progress.js';
-import { readProjectSpec } from '../../core-protocol/src/storage/projectSpec.js';
-import { projectCaptureNote } from '../../core-protocol/src/runtime/captureNote.js';
-import { checkpointWork } from '../../core-protocol/src/runtime/checkpointWork.js';
-import { createChange } from '../../core-protocol/src/runtime/createChange.js';
-import { defineProjectSpec } from '../../core-protocol/src/runtime/defineProjectSpec.js';
-import { logDecision } from '../../core-protocol/src/runtime/logDecision.js';
-import { recordProgress } from '../../core-protocol/src/runtime/recordProgress.js';
-import { startWork } from '../../core-protocol/src/runtime/startWork.js';
-import { updateChange } from '../../core-protocol/src/runtime/updateChange.js';
-import { ingestMemory } from '../../core-protocol/src/runtime/ingestMemory.js';
-import { projectInit } from '../../core-protocol/src/runtime/initializeProject.js';
-import type { ChangeSpec } from '../../core-protocol/src/storage/changes.js';
-import type { Decision } from '../../core-protocol/src/storage/decisions.js';
-import type { Manifest } from '../../core-protocol/src/storage/manifest.js';
-import type { Milestone } from '../../core-protocol/src/storage/milestones.js';
-import type { Note } from '../../core-protocol/src/storage/notes.js';
-import type { ProgressEntry } from '../../core-protocol/src/storage/progress.js';
-import type { ProjectSpec } from '../../core-protocol/src/storage/projectSpec.js';
-import type { CaptureNoteInput, CaptureNoteOutput } from '../../core-protocol/src/runtime/captureNote.js';
-import type { CheckpointWorkInput, CheckpointWorkOutput } from '../../core-protocol/src/runtime/checkpointWork.js';
-import type { CreateChangeInput, CreateChangeOutput } from '../../core-protocol/src/runtime/createChange.js';
-import type { DefineProjectSpecInput, DefineProjectSpecOutput } from '../../core-protocol/src/runtime/defineProjectSpec.js';
-import type { LogDecisionInput, LogDecisionOutput } from '../../core-protocol/src/runtime/logDecision.js';
-import type { RecordProgressInput, RecordProgressOutput } from '../../core-protocol/src/runtime/recordProgress.js';
-import type { StartWorkInput, StartWorkOutput } from '../../core-protocol/src/runtime/startWork.js';
-import type { UpdateChangeInput, UpdateChangeOutput } from '../../core-protocol/src/runtime/updateChange.js';
-import type { IngestMemoryInput, IngestMemoryOutput } from '../../core-protocol/src/runtime/ingestMemory.js';
-import type { ProjectInitInput, ProjectInitOutput } from '../../core-protocol/src/runtime/initializeProject.js';
+import {
+  readAllChanges,
+  readChange,
+  readDecisions,
+  readManifest,
+  readMilestones,
+  readNotes,
+  readProgress,
+  readProjectSpec,
+  type ChangeSpec,
+  type Decision,
+  type Manifest,
+  type Milestone,
+  type Note,
+  type ProgressEntry,
+  type ProjectSpec,
+} from '@myczh/project-brain/core-protocol/storage';
+import {
+  captureNote as projectCaptureNote,
+  checkpointWork,
+  createChange,
+  defineProjectSpec,
+  ingestMemory,
+  initializeProject as projectInit,
+  logDecision,
+  recordProgress,
+  startWork,
+  updateChange,
+  type CaptureNoteInput,
+  type CaptureNoteOutput,
+  type CheckpointWorkInput,
+  type CheckpointWorkOutput,
+  type CreateChangeInput,
+  type CreateChangeOutput,
+  type DefineProjectSpecInput,
+  type DefineProjectSpecOutput,
+  type IngestMemoryInput,
+  type IngestMemoryOutput,
+  type LogDecisionInput,
+  type LogDecisionOutput,
+  type ProjectInitInput,
+  type ProjectInitOutput,
+  type RecordProgressInput,
+  type RecordProgressOutput,
+  type StartWorkInput,
+  type StartWorkOutput,
+  type UpdateChangeInput,
+  type UpdateChangeOutput,
+} from '@myczh/project-brain/application/commands';
 
 export interface RuntimeStateSnapshot {
   manifest: Manifest | null;

@@ -1,15 +1,17 @@
 import * as path from 'path';
-import type { Decision } from '../../../core-protocol/src/storage/decisions.js';
-import type { Manifest } from '../../../core-protocol/src/storage/manifest.js';
-import type { Milestone } from '../../../core-protocol/src/storage/milestones.js';
-import type { ProgressEntry } from '../../../core-protocol/src/storage/progress.js';
-import { readDecisions } from '../../../core-protocol/src/storage/decisions.js';
-import { readManifest } from '../../../core-protocol/src/storage/manifest.js';
-import { readMilestones } from '../../../core-protocol/src/storage/milestones.js';
-import { readNotes } from '../../../core-protocol/src/storage/notes.js';
-import { readProgress } from '../../../core-protocol/src/storage/progress.js';
-import { readProjectSpec } from '../../../core-protocol/src/storage/projectSpec.js';
-import { getRepoRootPath } from '../../../core-protocol/src/storage/repoRoot.js';
+import {
+  getRepoRootPath,
+  readDecisions,
+  readManifest,
+  readMilestones,
+  readNotes,
+  readProgress,
+  readProjectSpec,
+  type Decision,
+  type Manifest,
+  type Milestone,
+  type ProgressEntry,
+} from '@myczh/project-brain/core-protocol/storage';
 import { brainAnalyze } from '../analysis/brainAnalyze.js';
 import { projectRecentActivity } from '../analysis/recentActivity.js';
 import { suggestNextActionsTool } from '../analysis/suggestNextActions.js';

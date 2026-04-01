@@ -1,12 +1,13 @@
-import type { Commit } from '../../../core-protocol/src/git/parseLog.js';
-import type { HotPath } from '../../../core-protocol/src/git/hotPaths.js';
-import type { Decision } from '../../../core-protocol/src/storage/decisions.js';
-import type { Manifest } from '../../../core-protocol/src/storage/manifest.js';
-import type { Milestone } from '../../../core-protocol/src/storage/milestones.js';
-import type { NextAction } from '../../../core-protocol/src/storage/nextActions.js';
-import type { Note } from '../../../core-protocol/src/storage/notes.js';
-import type { ProgressEntry } from '../../../core-protocol/src/storage/progress.js';
-import type { ProjectSpec } from '../../../core-protocol/src/storage/projectSpec.js';
+import type { Commit, HotPath } from '@myczh/project-brain/core-protocol/git';
+import type {
+  Decision,
+  Manifest,
+  Milestone,
+  NextAction,
+  Note,
+  ProgressEntry,
+  ProjectSpec,
+} from '@myczh/project-brain/core-protocol/storage';
 
 export interface DashboardOverview {
   project_name: string;

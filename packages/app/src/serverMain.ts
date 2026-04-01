@@ -1,4 +1,4 @@
-import { createHttpServer } from '../../transport-http/src/index.js';
+import { createHttpServer } from '@myczh/project-brain/transport-http';
 
 export async function main() {
   const host = process.env.PROJECT_BRAIN_HOST || '127.0.0.1';

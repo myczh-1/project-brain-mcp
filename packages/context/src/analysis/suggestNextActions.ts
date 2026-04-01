@@ -1,10 +1,6 @@
-import { calculateHotPaths } from '../../../core-protocol/src/git/hotPaths.js';
-import { parseLog } from '../../../core-protocol/src/git/parseLog.js';
-import { inferMilestoneSignals } from '../../../core-protocol/src/understanding/inferFocus.js';
-import { recommendNextActions, type ActionRecommendation } from '../../../core-protocol/src/understanding/recommendActions.js';
-import { readDecisions } from '../../../core-protocol/src/storage/decisions.js';
-import { readMilestones, upsertInferredMilestones } from '../../../core-protocol/src/storage/milestones.js';
-import { readProgress } from '../../../core-protocol/src/storage/progress.js';
+import { calculateHotPaths, parseLog } from '@myczh/project-brain/core-protocol/git';
+import { readDecisions, readMilestones, readProgress, upsertInferredMilestones } from '@myczh/project-brain/core-protocol/storage';
+import { inferMilestoneSignals, recommendNextActions, type ActionRecommendation } from '@myczh/project-brain/core-protocol/understanding';
 
 export interface SuggestNextActionsInput {
   limit?: number;

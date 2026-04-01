@@ -1,7 +1,7 @@
-import { createRuntimeService } from '../../../runtime/src/index.js';
+import { createRuntimeService } from '@myczh/project-brain/runtime';
 import { brainAnalyze } from './brainAnalyze.js';
 import { suggestNextActionsTool } from './suggestNextActions.js';
-import type { CheckpointWorkInput } from '../../../core-protocol/src/runtime/checkpointWork.js';
+import type { CheckpointWorkInput } from '@myczh/project-brain/protocol/runtime';
 
 export interface FinishWorkInput {
   repo_path?: string;

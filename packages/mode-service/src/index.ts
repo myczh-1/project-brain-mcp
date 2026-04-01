@@ -1,13 +1,16 @@
-import { createContextService } from '../../context/src/index.js';
-import { createRuntime, createRuntimeService } from '../../runtime/src/index.js';
-import { createHttpServer } from '../../transport-http/src/index.js';
-import { createMcpHttpHandler } from '../../transport-mcp/src/index.js';
-import { main as startServer } from '../../app/src/index.js';
-import type { ContextService } from '../../context/src/index.js';
-import type { RuntimeService } from '../../runtime/src/index.js';
+import { main as startServer } from '@myczh/project-brain/app';
+import {
+  createContextService,
+  createRuntime,
+  createRuntimeService,
+  type ContextService,
+  type RuntimeService,
+} from '@myczh/project-brain/application';
+import { createHttpServer } from '@myczh/project-brain/transport-http';
+import { createMcpHttpHandler } from '@myczh/project-brain/transport-mcp';
 
-export { createHttpServer } from '../../transport-http/src/index.js';
-export { createMcpHttpHandler } from '../../transport-mcp/src/index.js';
+export { createHttpServer } from '@myczh/project-brain/transport-http';
+export { createMcpHttpHandler } from '@myczh/project-brain/transport-mcp';
 export { startServer };
 
 export interface ServiceMode {

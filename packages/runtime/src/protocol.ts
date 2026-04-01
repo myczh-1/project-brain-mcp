@@ -1,20 +1,32 @@
-import type { ChangeSpec } from '../../core-protocol/src/storage/changes.js';
-import type { Decision } from '../../core-protocol/src/storage/decisions.js';
-import type { Manifest } from '../../core-protocol/src/storage/manifest.js';
-import type { Milestone } from '../../core-protocol/src/storage/milestones.js';
-import type { Note } from '../../core-protocol/src/storage/notes.js';
-import type { ProgressEntry } from '../../core-protocol/src/storage/progress.js';
-import type { ProjectSpec } from '../../core-protocol/src/storage/projectSpec.js';
-import type { CaptureNoteInput, CaptureNoteOutput } from '../../core-protocol/src/runtime/captureNote.js';
-import type { CheckpointWorkInput, CheckpointWorkOutput } from '../../core-protocol/src/runtime/checkpointWork.js';
-import type { CreateChangeInput, CreateChangeOutput } from '../../core-protocol/src/runtime/createChange.js';
-import type { DefineProjectSpecInput, DefineProjectSpecOutput } from '../../core-protocol/src/runtime/defineProjectSpec.js';
-import type { LogDecisionInput, LogDecisionOutput } from '../../core-protocol/src/runtime/logDecision.js';
-import type { RecordProgressInput, RecordProgressOutput } from '../../core-protocol/src/runtime/recordProgress.js';
-import type { StartWorkInput, StartWorkOutput } from '../../core-protocol/src/runtime/startWork.js';
-import type { UpdateChangeInput, UpdateChangeOutput } from '../../core-protocol/src/runtime/updateChange.js';
-import type { IngestMemoryInput, IngestMemoryOutput } from '../../core-protocol/src/runtime/ingestMemory.js';
-import type { ProjectInitInput, ProjectInitOutput } from '../../core-protocol/src/runtime/initializeProject.js';
+import type {
+  CaptureNoteInput,
+  CaptureNoteOutput,
+  ChangeSpec,
+  CheckpointWorkInput,
+  CheckpointWorkOutput,
+  CreateChangeInput,
+  CreateChangeOutput,
+  Decision,
+  DefineProjectSpecInput,
+  DefineProjectSpecOutput,
+  IngestMemoryInput,
+  IngestMemoryOutput,
+  LogDecisionInput,
+  LogDecisionOutput,
+  Manifest,
+  Milestone,
+  Note,
+  ProgressEntry,
+  ProjectInitInput,
+  ProjectInitOutput,
+  ProjectSpec,
+  RecordProgressInput,
+  RecordProgressOutput,
+  StartWorkInput,
+  StartWorkOutput,
+  UpdateChangeInput,
+  UpdateChangeOutput,
+} from '@myczh/project-brain/protocol/runtime';
 import type { RuntimeStateSnapshot } from './service.js';
 
 export type RuntimeCommand =
