@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project Brain Console</title>
+    <link rel="stylesheet" href="/ui/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <button id="meta-toggle" class="meta-toggle" type="button" aria-expanded="false" aria-controls="meta-drawer">
+        System
+      </button>
+
+      <aside id="meta-drawer" class="meta-drawer" aria-hidden="true">
+        <div class="meta-card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Runtime</p>
+              <h2 class="section-title">System Meta</h2>
+            </div>
+            <button id="meta-close" class="subtle-button" type="button">Close</button>
+          </div>
+          <dl class="meta-list">
+            <div>
+              <dt>Status</dt>
+              <dd id="meta-status">Loading</dd>
+            </div>
+            <div>
+              <dt>Repo Path</dt>
+              <dd id="meta-repo-path">-</dd>
+            </div>
+            <div>
+              <dt>Generated</dt>
+              <dd id="meta-generated-at">-</dd>
+            </div>
+            <div>
+              <dt>Degradation Notice</dt>
+              <dd id="meta-degradation">-</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+
+      <section class="dashboard-shell">
+        <header class="hero-card">
+          <div class="hero-grid">
+            <div>
+              <p class="eyebrow">Project Brain Observability</p>
+              <h1 class="hero-title" id="hero-project-name">Operations Dashboard</h1>
+              <p class="hero-copy" id="overview-summary">
+                Loading dashboard data.
+              </p>
+            </div>
+            <div class="status-stack">
+              <span id="status-pill" class="status-badge status-badge-offline">
+                <span class="status-badge-dot"></span>
+                Loading
+              </span>
+            </div>
+          </div>
+
+          <form id="controls-form" class="control-bar">
+            <label class="control-field control-field-wide">
+              <span>Repository path</span>
+              <input id="repo-path" name="repo_path" type="text" placeholder="Defaults to server cwd" />
+            </label>
+            <label class="control-field">
+              <span>Recent commits</span>
+              <input id="recent-commits" name="recent_commits" type="number" min="1" max="200" value="50" />
+            </label>
+            <label class="control-toggle">
+              <input id="include-analysis" name="include_deep_analysis" type="checkbox" checked />
+              <span>Deep analysis</span>
+            </label>
+            <button type="submit">Refresh</button>
+          </form>
+        </header>
+
+        <section class="metric-grid">
+          <article class="metric-card">
+            <p class="metric-label">Current focus</p>
+            <p id="metric-focus" class="metric-value">-</p>
+            <p id="metric-focus-detail" class="metric-detail">-</p>
+          </article>
+          <article class="metric-card">
+            <p class="metric-label">Overall progress</p>
+            <p id="metric-progress" class="metric-value numeric">-</p>
+            <p id="metric-progress-detail" class="metric-detail">-</p>
+          </article>
+          <article class="metric-card">
+            <p class="metric-label">Current work</p>
+            <p id="metric-running" class="metric-value numeric">-</p>
+            <p id="metric-running-detail" class="metric-detail">-</p>
+          </article>
+          <article class="metric-card">
+            <p class="metric-label">Staleness risk</p>
+            <p id="metric-risk" class="metric-value">-</p>
+            <p id="metric-risk-detail" class="metric-detail">-</p>
+          </article>
+        </section>
+
+        <section class="section-card">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Memory Layers</p>
+              <h2 class="section-title">Truth to Execution</h2>
+              <p class="section-copy">Project Brain is strongest when stable truth, decisions, work-in-flight, and evidence stay connected but distinct.</p>
+            </div>
+            <span id="init-chip" class="tag">-</span>
+          </div>
+
+          <div class="flow-grid">
+            <article class="flow-card">
+              <p class="flow-kicker">Long-term truth</p>
+              <h3 id="layer-project-name">-</h3>
+              <p id="layer-project-summary" class="flow-copy">-</p>
+              <div id="goal-list" class="goal-list"></div>
+            </article>
+            <article class="flow-card">
+              <p class="flow-kicker">Decision memory</p>
+              <h3 id="decision-headline">-</h3>
+              <p id="decision-headline-copy" class="flow-copy">-</p>
+              <div id="decision-rail" class="mini-list"></div>
+            </article>
+            <article class="flow-card flow-card-active">
+              <p class="flow-kicker">Active execution</p>
+              <h3>In progress now</h3>
+              <div id="in-progress-list" class="mini-list"></div>
+            </article>
+            <article class="flow-card">
+              <p class="flow-kicker">Evidence and notes</p>
+              <h3>Captured signals</h3>
+              <div id="evidence-list" class="mini-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <div class="content-grid">
+          <section class="section-card">
+            <div class="section-header">
+              <div>
+                <p class="eyebrow">Memory Browser</p>
+                <h2 class="section-title">Inspect One Layer</h2>
+                <p id="memory-summary" class="section-copy">-</p>
+              </div>
+              <div id="memory-tabs" class="tab-row">
+                <button class="tab-button active" type="button" data-tab="decisions">Decisions</button>
+                <button class="tab-button" type="button" data-tab="progress">Progress</button>
+                <button class="tab-button" type="button" data-tab="milestones">Milestones</button>
+                <button class="tab-button" type="button" data-tab="notes">Notes</button>
+              </div>
+            </div>
+
+            <div class="browser-grid">
+              <div class="browser-column">
+                <div id="memory-list" class="browser-list"></div>
+              </div>
+
+              <aside class="detail-card">
+                <div class="detail-block">
+                  <p class="eyebrow">Detail</p>
+                  <h3 id="detail-title" class="detail-title">Select an item</h3>
+                  <p id="detail-body" class="detail-copy">Choose an item to inspect the full record.</p>
+                  <div id="detail-meta" class="detail-meta"></div>
+                </div>
+
+                <div class="detail-block">
+                  <p class="eyebrow">Linked Memory</p>
+                  <div id="detail-links" class="link-list"></div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <aside class="side-column">
+            <section class="section-card">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">Execution</p>
+                  <h2 class="section-title">Current Work</h2>
+                </div>
+              </div>
+              <div id="work-spotlight" class="work-table"></div>
+            </section>
+
+            <section class="section-card">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">Suggestions</p>
+                  <h2 class="section-title">Next Actions</h2>
+                </div>
+              </div>
+              <div id="actions-list" class="spotlight-list"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="/ui/app.js"></script>
+  </body>
+</html>
