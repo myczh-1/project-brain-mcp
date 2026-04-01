@@ -8,9 +8,29 @@
       "types": "./dist/packages/mode-service/src/index.d.ts",
       "import": "./dist/packages/mode-service/src/index.js"
     },
+    "./application": {
+      "types": "./dist/packages/application/src/index.d.ts",
+      "import": "./dist/packages/application/src/index.js"
+    },
+    "./application/commands": {
+      "types": "./dist/packages/application/src/commands/index.d.ts",
+      "import": "./dist/packages/application/src/commands/index.js"
+    },
     "./core-protocol": {
       "types": "./dist/packages/core-protocol/src/index.d.ts",
       "import": "./dist/packages/core-protocol/src/index.js"
+    },
+    "./core-protocol/git": {
+      "types": "./dist/packages/core-protocol/src/git/index.d.ts",
+      "import": "./dist/packages/core-protocol/src/git/index.js"
+    },
+    "./core-protocol/storage": {
+      "types": "./dist/packages/core-protocol/src/storage/index.d.ts",
+      "import": "./dist/packages/core-protocol/src/storage/index.js"
+    },
+    "./core-protocol/understanding": {
+      "types": "./dist/packages/core-protocol/src/understanding/index.d.ts",
+      "import": "./dist/packages/core-protocol/src/understanding/index.js"
     },
     "./mode-embedded": {
       "types": "./dist/packages/mode-embedded/src/index.d.ts",
@@ -28,6 +48,14 @@
       "types": "./dist/packages/context/src/index.d.ts",
       "import": "./dist/packages/context/src/index.js"
     },
+    "./protocol": {
+      "types": "./dist/packages/protocol/src/index.d.ts",
+      "import": "./dist/packages/protocol/src/index.js"
+    },
+    "./protocol/runtime": {
+      "types": "./dist/packages/protocol/src/runtime.d.ts",
+      "import": "./dist/packages/protocol/src/runtime.js"
+    },
     "./transport-http": {
       "types": "./dist/packages/transport-http/src/index.d.ts",
       "import": "./dist/packages/transport-http/src/index.js"
@@ -35,6 +63,10 @@
     "./transport-mcp": {
       "types": "./dist/packages/transport-mcp/src/index.d.ts",
       "import": "./dist/packages/transport-mcp/src/index.js"
+    },
+    "./app": {
+      "types": "./dist/packages/app/src/index.d.ts",
+      "import": "./dist/packages/app/src/index.js"
     }
   },
   "bin": {

@@ -4,6 +4,25 @@
     "module": "ES2022",
     "lib": ["ES2022"],
     "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@myczh/project-brain": ["packages/mode-service/src/index.ts"],
+      "@myczh/project-brain/application": ["packages/application/src/index.ts"],
+      "@myczh/project-brain/application/commands": ["packages/application/src/commands/index.ts"],
+      "@myczh/project-brain/app": ["packages/app/src/index.ts"],
+      "@myczh/project-brain/context": ["packages/context/src/index.ts"],
+      "@myczh/project-brain/core-protocol": ["packages/core-protocol/src/index.ts"],
+      "@myczh/project-brain/core-protocol/git": ["packages/core-protocol/src/git/index.ts"],
+      "@myczh/project-brain/core-protocol/storage": ["packages/core-protocol/src/storage/index.ts"],
+      "@myczh/project-brain/core-protocol/understanding": ["packages/core-protocol/src/understanding/index.ts"],
+      "@myczh/project-brain/mode-embedded": ["packages/mode-embedded/src/index.ts"],
+      "@myczh/project-brain/mode-service": ["packages/mode-service/src/index.ts"],
+      "@myczh/project-brain/protocol": ["packages/protocol/src/index.ts"],
+      "@myczh/project-brain/protocol/runtime": ["packages/protocol/src/runtime.ts"],
+      "@myczh/project-brain/runtime": ["packages/runtime/src/index.ts"],
+      "@myczh/project-brain/transport-http": ["packages/transport-http/src/index.ts"],
+      "@myczh/project-brain/transport-mcp": ["packages/transport-mcp/src/index.ts"]
+    },
     "outDir": "./dist",
     "rootDir": ".",
     "strict": true,
@@ -15,6 +34,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "packages/**/*"],
+  "include": ["packages/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
