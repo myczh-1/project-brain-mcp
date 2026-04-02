@@ -50,7 +50,7 @@ function createProjectBrainMcpServer() {
         },
       },
       instructions:
-        'Project Brain is the durable memory, development-recording, and reflection layer for AI-assisted software development. Use the Project Brain protocol as the source of truth. In practice: read `brain_context` before substantial work, re-read `brain_change_context`, `brain_context`, or `brain_dashboard` before resuming work or writing from stale context, record meaningful execution updates while work is happening, and reflect larger outcomes before concluding.',
+        'Project Brain is the durable memory, development-recording, and reflection layer for AI-assisted software development. IMPORTANT: Every tool call requires `repo_path` — the absolute path to the target project repository. The server runs as a shared service and cannot infer the client working directory. Use the Project Brain protocol as the source of truth. In practice: read `brain_context` before substantial work, re-read `brain_change_context`, `brain_context`, or `brain_dashboard` before resuming work or writing from stale context, record meaningful execution updates while work is happening, and reflect larger outcomes before concluding.',
     }
   );
 
@@ -60,7 +60,7 @@ function createProjectBrainMcpServer() {
       description:
         'Inspect the current project memory and status through a unified dashboard view before resuming work, reconciling current state, or writing broader project updates.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository. Required — the server cannot infer the client working directory.'),
         include_deep_analysis: z.boolean().optional(),
         recent_commits: z.number().optional(),
       },
@@ -84,7 +84,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Initialize or update the project identity anchor for this repository.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         answers: z
           .object({
             project_name: z.string().optional(),
@@ -115,7 +115,7 @@ function createProjectBrainMcpServer() {
       description:
         'Create, reuse, or adopt a change as the active execution anchor, and optionally write an initial progress update.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         change_id: z.string().optional(),
         create_change: z
           .object({
@@ -163,7 +163,7 @@ function createProjectBrainMcpServer() {
       description:
         'Record an in-progress checkpoint by updating a change and optionally appending progress and a note.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         change_id: z.string(),
         change_patch: z
           .object({
@@ -217,7 +217,7 @@ function createProjectBrainMcpServer() {
       description:
         'Finish a change by setting a terminal status, optionally writing final progress and a note, then returning a reflection summary and next actions.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         change_id: z.string(),
         final_status: z.enum(['done', 'dropped']).optional(),
         summary_patch: z
@@ -278,7 +278,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Create a structured change record for a concrete implementation task.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         change: z.object({
           id: z.string().optional(),
           title: z.string(),
@@ -311,7 +311,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Update an existing change record as implementation progresses.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         change_id: z.string(),
         patch: z.object({
           title: z.string().optional(),
@@ -345,7 +345,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Record a concrete implementation or project decision with rationale.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         decision: z.object({
           id: z.string().optional(),
           title: z.string(),
@@ -376,7 +376,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Record execution progress updates or milestone status during development.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         type: z.enum(['progress', 'milestone']),
         progress: z
           .object({
@@ -417,7 +417,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Capture a raw implementation note, observation, or follow-up fragment.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         note: z.string(),
         tags: z.array(z.string()).optional(),
         related_change_id: z.string().optional(),
@@ -444,7 +444,7 @@ function createProjectBrainMcpServer() {
       description:
         'Get detailed execution context for a specific change before resuming, extending, or updating that change so reads happen before additional progress writes.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         change_id: z.string(),
         recent_commits: z.number().optional(),
       },
@@ -468,7 +468,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Validate and ingest a single structured memory record from user input or GPT output.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         memory: z.object({
           type: z.enum(['project_spec', 'change_spec', 'decision', 'note', 'progress']),
           confirmed_by_user: z.boolean(),
@@ -499,7 +499,7 @@ function createProjectBrainMcpServer() {
       description:
         'Get lightweight project context to hydrate current goals, active changes, recent decisions, and recent progress before planning work or recording new updates.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
       },
     },
     async ({ repo_path }) => {
@@ -519,7 +519,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Inspect recent repository activity and hot paths for reflection and context updates.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         limit: z.number().optional(),
         since_days: z.number().optional(),
       },
@@ -543,7 +543,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Suggest next engineering actions from current project memory and recent repository activity.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         limit: z.number().optional(),
         filter_by_milestone: z.string().optional(),
         recent_commits: z.number().optional(),
@@ -569,7 +569,7 @@ function createProjectBrainMcpServer() {
     {
       description: 'Run a broader project reflection pass across memory, milestones, and repository activity.',
       inputSchema: {
-        repo_path: z.string().optional(),
+        repo_path: z.string().describe('Absolute path to the target project repository.'),
         depth: z.enum(['quick', 'full']).optional(),
         recent_commits: z.number().optional(),
       },
