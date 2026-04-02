@@ -60,17 +60,21 @@ Project Brain provides an MCP (Model Context Protocol) endpoint at `http://127.0
 2. Add a new server with the URL: `http://127.0.0.1:3210/mcp`.
 
 ### Claude Desktop
-Edit your `claude_desktop_config.json` file:
+First, start the Project Brain server in a terminal:
+```bash
+npx -y @myczh/project-brain
+```
+Then edit your `claude_desktop_config.json` file:
 ```json
 {
   "mcpServers": {
     "project-brain": {
-      "command": "npx",
-      "args": ["-y", "@myczh/project-brain", "mcp"]
+      "url": "http://127.0.0.1:3210/mcp"
     }
   }
 }
 ```
+*Note: Claude Desktop connects to the running HTTP server. Keep the terminal open while using Claude Desktop.*
 
 ### OpenCode
 Edit your `opencode.json` file to include the MCP server:

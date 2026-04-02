@@ -60,17 +60,21 @@ Project Brain 在 `http://127.0.0.1:3210/mcp` 提供了一个 MCP (Model Context
 2. 添加一个新服务器，URL 为：`http://127.0.0.1:3210/mcp`。
 
 ### Claude Desktop
-编辑您的 `claude_desktop_config.json` 文件：
+首先，在终端中启动 Project Brain 服务器：
+```bash
+npx -y @myczh/project-brain
+```
+然后编辑您的 `claude_desktop_config.json` 文件：
 ```json
 {
   "mcpServers": {
     "project-brain": {
-      "command": "npx",
-      "args": ["-y", "@myczh/project-brain", "mcp"]
+      "url": "http://127.0.0.1:3210/mcp"
     }
   }
 }
 ```
+*注意：Claude Desktop 连接到正在运行的 HTTP 服务器。使用 Claude Desktop 时请保持终端窗口打开。*
 
 ### OpenCode
 编辑您的 `opencode.json` 文件以包含 MCP 服务器：

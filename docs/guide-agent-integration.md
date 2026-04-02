@@ -26,18 +26,21 @@ Add Project Brain as an MCP server in Cursor settings (Settings > LSP > MCP).
 ```
 
 ### Claude Desktop
-Add the following to your `claude_desktop_config.json`:
+Start the Project Brain server in a terminal first:
+```bash
+npx -y @myczh/project-brain
+```
+Then add the following to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
     "project-brain": {
-      "command": "npx",
-      "args": ["-y", "@myczh/project-brain", "mcp-stdio"]
+      "url": "http://127.0.0.1:3210/mcp"
     }
   }
 }
 ```
-*Note: While the service runs on HTTP, Claude Desktop typically uses stdio-based MCP. Use the `mcp-stdio` command if connecting directly via config.*
+*Note: Claude Desktop connects to the running HTTP server. Keep the terminal open while using Claude Desktop.*
 
 ### OpenCode
 Add to the `mcpServers` section of your `opencode.json`:
@@ -121,7 +124,6 @@ Tools used to understand current project state and recent history.
 - **brain_change_context**: Detailed context for a specific change. Typical use: Resuming or refining a specific task.
 - **brain_recent_activity**: Inspect recent repository activity and hot paths. Typical use: Contextualizing changes with git history.
 - **brain_analyze**: Broader reflection pass across memory and activity. Typical use: Deep project analysis or periodic review.
-- **brain_estimate_progress**: Progress estimation for the current project. Typical use: Reporting status or identifying missing steps.
 - **brain_suggest_actions**: Suggest likely next engineering actions. Typical use: Planning the next phase of work.
 
 ### Write/Record
