@@ -1,5 +1,10 @@
 # Project Brain Protocol v0
 
+## Stability Tiers
+
+- **stable protocol**: persisted `.project-brain/*` data contract defined in this `protocol/` directory.
+- **optional runtime convenience**: MCP/HTTP services, dashboard views, and composite workflow helpers built on top of the stable protocol.
+
 Project Brain has two different concepts now:
 
 - the protocol contract for `.project-brain/*`

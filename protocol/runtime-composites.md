@@ -1,5 +1,8 @@
 # Runtime Composite Commands
 
+> Stability notice: this document is **not a stable commitment**.
+> Composite commands are **optional runtime convenience**, may be removed, and are **not the mainline protocol contract**.
+
 These commands are implementation conveniences.
 
 They are not part of the minimal interoperable protocol surface.

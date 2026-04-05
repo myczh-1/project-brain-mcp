@@ -2,11 +2,14 @@
 
 Durable project memory for AI-assisted development.
 
+> Mainline guarantee: Project Brain currently guarantees only the stable protocol contract in [`protocol/`](./protocol/README.md).
+> Service mode, MCP tool surface, and dashboard views are optional runtime convenience layers.
+
 ## What It Does
 
 - Provides a durable project memory mechanism for AI-assisted development loops.
 - Stores project context, changes, decisions, and progress in the `.project-brain/` directory.
-- Supports two usage modes: a full Service Mode with HTTP/MCP and a Lightweight Mode for direct file-based access.
+- Supports two usage modes over the same stable protocol: an optional Service Mode (HTTP/MCP) and a Lightweight Mode (direct file access).
 
 ## Two Usage Modes
 
@@ -74,7 +77,7 @@ Project Brain manages structured state within the `.project-brain/` directory:
   milestones.json
 ```
 
-## Available MCP Tools
+## Optional MCP Tool Surface (Runtime Convenience)
 
 ### Read/Inspect
 - `brain_dashboard`: Inspect the current project memory and status through a unified dashboard view.

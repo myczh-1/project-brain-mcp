@@ -1,5 +1,8 @@
 # Getting Started with Project Brain
 
+> Mainline guarantee: Project Brain currently guarantees only the stable protocol contract in [`protocol/README.md`](../protocol/README.md).
+> Service mode, MCP, and dashboard experiences are optional runtime convenience layers.
+
 This guide provides step-by-step instructions for installing, configuring, and using Project Brain in your development environment.
 
 ## Prerequisites
@@ -28,7 +31,7 @@ project-brain setup
 ### Mode Guidance
 
 - If the repository already has `openspec/`, choose Lightweight mode. This is the recommended way to pair Project Brain with OpenSpec.
-- If you want MCP/HTTP access for AI clients, choose Service mode.
+- If you want optional MCP/HTTP runtime access for AI clients, choose Service mode.
 - If you want both, choose Both during setup.
 
 ## Starting the Service

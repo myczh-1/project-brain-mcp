@@ -1,11 +1,14 @@
 # Project Brain
 为 AI 辅助开发提供持久化项目记忆。
 
+> 主线保证：Project Brain 当前仅保证 [`protocol/`](./protocol/README.md) 中定义的稳定协议契约。
+> 服务模式、MCP 工具面与 Dashboard 视图都属于可选的运行时便利层。
+
 ## 功能介绍
 
 - 为 AI 辅助开发循环提供持久化项目记忆机制。
 - 在 `.project-brain/` 目录下存储项目上下文、变更（changes）、决策（decisions）和进度（progress）。
-- 支持两种使用模式：包含 HTTP/MCP 的完整服务模式（Service Mode），以及基于文件的轻量模式（Lightweight Mode）。
+- 基于同一稳定协议支持两种使用模式：可选的服务模式（HTTP/MCP）与基于文件的轻量模式。
 
 ## 两种使用模式
 
@@ -20,7 +23,7 @@
 ## 如何选择安装方式
 
 - 已经在使用 OpenSpec：运行 `npx -y @myczh/project-brain setup`，选择“轻量模式”。当仓库中已存在 `openspec/` 时，这是推荐路径。
-- 需要给 Cursor、Claude Desktop、OpenCode 或本地 Dashboard 提供 MCP/HTTP 接入：运行 `npx -y @myczh/project-brain setup`，选择“服务模式”。
+- 需要给 Cursor、Claude Desktop、OpenCode 或本地 Dashboard 提供可选 MCP/HTTP 运行时接入：运行 `npx -y @myczh/project-brain setup`，选择“服务模式”。
 - 两者都需要：在 setup 中选择“两者都启用”。日常仍以轻量模式为主，HTTP 服务用于 MCP 客户端接入。
 
 ## 快速开始 (服务模式)
@@ -73,7 +76,7 @@ Project Brain 在 `.project-brain/` 目录下管理结构化状态：
   milestones.json
 ```
 
-## 可用的 MCP 工具
+## 可选 MCP 工具面（运行时便利层）
 
 ### 读取/检查 (Read/Inspect)
 - `brain_dashboard`: 通过统一的看板视图检查当前项目记忆和状态。

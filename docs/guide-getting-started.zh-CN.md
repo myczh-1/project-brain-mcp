@@ -1,5 +1,8 @@
 # Project Brain 入门指南
 
+> 主线保证：Project Brain 当前仅保证 [`protocol/README.md`](../protocol/README.md) 中定义的稳定协议契约。
+> 服务模式、MCP 与 Dashboard 体验都属于可选的运行时便利层。
+
 本指南将为您提供在开发环境中安装、配置和使用 Project Brain 的逐步说明。
 
 ## 前置条件
@@ -28,7 +31,7 @@ project-brain setup
 ### 模式选择建议
 
 - 如果仓库中已经有 `openspec/`，请选择“轻量模式”。这是 Project Brain 与 OpenSpec 配合时的推荐路径。
-- 如果您希望给 AI 客户端提供 MCP/HTTP 接入，请选择“服务模式”。
+- 如果您希望给 AI 客户端提供可选的 MCP/HTTP 运行时接入，请选择“服务模式”。
 - 如果两者都需要，请在 setup 时选择“两者都启用”。
 
 ## 启动服务

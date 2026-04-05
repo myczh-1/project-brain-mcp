@@ -15,7 +15,7 @@ OpenSpec manages the structured proposal-to-implementation workflow (propose →
 ## Two Integration Approaches
 
 ### Service Mode
-Run `npx @myczh/project-brain` alongside OpenSpec skills. The AI assistant connects to Project Brain via its Model Context Protocol (MCP) server while using file-based skills for OpenSpec operations. This mode provides advanced features like automatic git activity analysis and dashboard visualization.
+Run `npx @myczh/project-brain` alongside OpenSpec skills. The AI assistant connects to Project Brain via its Model Context Protocol (MCP) server while using file-based skills for OpenSpec operations. This optional runtime mode provides conveniences like automatic git activity analysis and dashboard visualization.
 
 ### Lightweight Mode (no server)
 The AI assistant reads and writes the `.project-brain/` directory directly following the protocol, while simultaneously using OpenSpec skills. No HTTP server or background process is required. This approach is ideal for single-developer workflows and environments where running a local server is inconvenient.
