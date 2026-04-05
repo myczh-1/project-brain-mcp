@@ -1,38 +1,36 @@
 import {
   createContextService,
-  createRuntimeService,
+  defineProjectSpec,
+  ingestMemory,
+  projectInit,
   type ChangeContextInput,
   type DashboardToolInput,
+  type DefineProjectSpecInput,
+  type IngestMemoryInput,
   type ProjectContextInput,
+  type ProjectInitInput,
 } from '@myczh/project-brain/core';
 import { createFsStorage, createFsGit } from '@myczh/project-brain/infra-fs';
 
 export interface HttpApiHandlers {
-  initializeProject(
-    input: Parameters<ReturnType<typeof createRuntimeService>['initializeProject']>[0]
-  ): ReturnType<ReturnType<typeof createRuntimeService>['initializeProject']>;
+  initializeProject(input: ProjectInitInput): ReturnType<typeof projectInit>;
   getDashboard(input: DashboardToolInput): ReturnType<ReturnType<typeof createContextService>['getDashboard']>;
   getProjectContext(input: ProjectContextInput): ReturnType<ReturnType<typeof createContextService>['getProjectContext']>;
   getChangeContext(input: ChangeContextInput): ReturnType<ReturnType<typeof createContextService>['getChangeContext']>;
-  ingestMemory(
-    input: Parameters<ReturnType<typeof createRuntimeService>['ingestMemory']>[0]
-  ): ReturnType<ReturnType<typeof createRuntimeService>['ingestMemory']>;
-  updateProjectSpec(
-    input: Parameters<ReturnType<typeof createRuntimeService>['defineProjectSpec']>[0]
-  ): ReturnType<ReturnType<typeof createRuntimeService>['defineProjectSpec']>;
+  ingestMemory(input: IngestMemoryInput): ReturnType<typeof ingestMemory>;
+  updateProjectSpec(input: DefineProjectSpecInput): ReturnType<typeof defineProjectSpec>;
 }
 
 export function createHttpApiHandlers(): HttpApiHandlers {
   const storage = createFsStorage();
   const git = createFsGit();
-  const runtime = createRuntimeService(storage);
   const context = createContextService(storage, git);
   return {
-    initializeProject: runtime.initializeProject,
+    initializeProject: (input) => projectInit(input, storage),
     getDashboard: context.getDashboard,
     getProjectContext: context.getProjectContext,
     getChangeContext: context.getChangeContext,
-    ingestMemory: runtime.ingestMemory,
-    updateProjectSpec: runtime.defineProjectSpec,
+    ingestMemory: (input) => ingestMemory(input, storage),
+    updateProjectSpec: (input) => defineProjectSpec(input, storage),
   };
 }

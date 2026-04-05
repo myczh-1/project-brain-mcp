@@ -5,7 +5,18 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { createContextService, createRuntimeService } from '@myczh/project-brain/core';
+import {
+  checkpointWork,
+  createChange,
+  createContextService,
+  ingestMemory,
+  logDecision,
+  projectCaptureNote,
+  projectInit,
+  recordProgress,
+  startWork,
+  updateChange,
+} from '@myczh/project-brain/core';
 import { createFsStorage, createFsGit } from '@myczh/project-brain/infra-fs';
 
 const packageJson = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf-8')) as { version: string };
@@ -21,19 +32,7 @@ function toStructuredContent(payload: unknown): Record<string, unknown> {
 function createProjectBrainMcpServer() {
   const storage = createFsStorage();
   const git = createFsGit();
-  const runtime = createRuntimeService(storage);
   const context = createContextService(storage, git);
-  const {
-    initializeProject: projectInit,
-    ingestMemory,
-    createChange,
-    updateChange,
-    logDecision,
-    recordProgress,
-    captureNote: projectCaptureNote,
-    startWork,
-    checkpointWork,
-  } = runtime;
   const {
     getChangeContext: changeContext,
     getProjectContext: projectContext,
@@ -106,7 +105,7 @@ function createProjectBrainMcpServer() {
       const result = await projectInit({
         repo_path,
         answers,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -154,7 +153,7 @@ function createProjectBrainMcpServer() {
         change_id,
         create_change,
         initial_progress,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -208,7 +207,7 @@ function createProjectBrainMcpServer() {
         change_patch,
         progress,
         note,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -303,7 +302,7 @@ function createProjectBrainMcpServer() {
       const result = await createChange({
         repo_path,
         change,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -337,7 +336,7 @@ function createProjectBrainMcpServer() {
         repo_path,
         change_id,
         patch,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -368,7 +367,7 @@ function createProjectBrainMcpServer() {
       const result = await logDecision({
         repo_path,
         decision,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -409,7 +408,7 @@ function createProjectBrainMcpServer() {
         type,
         progress,
         milestone,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -435,7 +434,7 @@ function createProjectBrainMcpServer() {
         note,
         tags,
         related_change_id,
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),
@@ -494,7 +493,7 @@ function createProjectBrainMcpServer() {
       const result = await ingestMemory({
         repo_path,
         memory: validatedMemory as Parameters<typeof ingestMemory>[0]['memory'],
-      });
+      }, storage);
 
       return {
         content: toTextContent(result),

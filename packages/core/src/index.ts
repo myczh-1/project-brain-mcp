@@ -72,18 +72,6 @@ export type {
   DashboardData,
 } from './queries/index.js';
 
-export { createRuntimeService, createRuntime } from './runtime/index.js';
-export type {
-  RuntimeService,
-  RuntimeStateSnapshot,
-  RuntimeCommand,
-  RuntimeCommandResult,
-  RuntimeMessage,
-  RuntimeMessageResult,
-  RuntimeQuery,
-  RuntimeQueryResult,
-} from './runtime/index.js';
-
 export {
   generateContextText,
   estimateProgressOverview,
