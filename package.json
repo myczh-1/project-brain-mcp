@@ -20,18 +20,6 @@
       "types": "./dist/packages/infra-fs/src/index.d.ts",
       "import": "./dist/packages/infra-fs/src/index.js"
     },
-    "./transport-http": {
-      "types": "./dist/packages/transport-http/src/index.d.ts",
-      "import": "./dist/packages/transport-http/src/index.js"
-    },
-    "./transport-mcp": {
-      "types": "./dist/packages/transport-mcp/src/index.d.ts",
-      "import": "./dist/packages/transport-mcp/src/index.js"
-    },
-    "./app": {
-      "types": "./dist/packages/app/src/index.d.ts",
-      "import": "./dist/packages/app/src/index.js"
-    },
     "./mode-embedded": {
       "types": "./dist/packages/mode-embedded/src/index.d.ts",
       "import": "./dist/packages/mode-embedded/src/index.js"
@@ -46,22 +34,18 @@
     "dist/packages/infra-fs",
     "dist/packages/mode-embedded",
     "dist/packages/protocol",
-    "dist/packages/transport-http",
-    "dist/packages/transport-mcp",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "dev": "tsx watch packages/app/src/serverMain.ts",
-    "dev:http": "tsx watch packages/app/src/serverMain.ts",
+    "verify:protocol": "tsx -e \"import('./packages/protocol/src/index.ts').then(()=>console.log('protocol ok'))\"",
+    "verify:core": "tsx -e \"import('./packages/core/src/index.ts').then(()=>console.log('core ok'))\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "http",
-    "mcp",
     "ai",
     "context",
     "project-management"
@@ -69,7 +53,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
