@@ -53,8 +53,8 @@ function printHeader(title: string): void {
 
 function printSetupSummary(facts: RepoFacts): void {
   console.error('Selected: Bootstrap mode');
-  console.error('- This CLI initializes Project Brain and points your AI assistant at the installer guide.');
-  console.error('- The recommended installation path is AI-assisted setup via the installer markdown.');
+  console.error('- This CLI bootstraps `.project-brain/` and points your AI assistant at the installer guide.');
+  console.error('- Installation is only complete after your AI tool config is updated to use `project-brain stdio`.');
   if (facts.hasOpenSpec) {
     console.error('- OpenSpec detected, so this repository is ready for the recommended file-based workflow.');
   }
@@ -93,7 +93,9 @@ function printLightweightInstructions(facts: RepoFacts): void {
   console.error('');
   console.error('Bootstrap next steps');
   console.error('- Open `docs/install.md` and ask your AI assistant to complete the installation for this repository.');
-  console.error('- Once configured, your AI tool should connect through `project-brain stdio` and follow `protocol/` when updating `.project-brain/`.');
+  console.error('- The assistant should first ask which AI tool to configure and whether you want project-level or global installation.');
+  console.error('- The assistant should check whether that tool and scope are already installed before changing config.');
+  console.error('- Installation is not complete until your AI tool is configured to use `project-brain stdio`.');
   if (facts.hasOpenSpec) {
     console.error('- OpenSpec detected: the installer should preserve the OpenSpec + Project Brain workflow.');
   }
