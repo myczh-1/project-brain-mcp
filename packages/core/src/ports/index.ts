@@ -4,6 +4,7 @@ export type {
   Decision,
   Manifest,
   Milestone,
+  ModuleRecord,
   NextAction,
   Note,
   ProgressEntry,

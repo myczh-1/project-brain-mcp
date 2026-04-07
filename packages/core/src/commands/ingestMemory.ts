@@ -24,6 +24,7 @@ interface ChangeSpecPayload {
   constraints?: string[];
   acceptance_criteria?: string[];
   affected_areas?: string[];
+  module_ids?: string[];
   related_decision_ids?: string[];
   status?: 'proposed' | 'active' | 'done' | 'dropped';
 }
@@ -35,6 +36,7 @@ interface DecisionPayload {
   alternatives_considered?: string[];
   scope?: 'project' | 'change' | 'module';
   related_change_id?: string;
+  module_ids?: string[];
   supersedes?: string;
 }
 
@@ -42,6 +44,7 @@ interface NotePayload {
   note: string;
   tags?: string[];
   related_change_id?: string;
+  module_ids?: string[];
 }
 
 interface ProgressPayload {
@@ -49,6 +52,7 @@ interface ProgressPayload {
   status?: 'planned' | 'in_progress' | 'blocked' | 'done';
   blockers?: string[];
   related_change_id?: string;
+  module_ids?: string[];
   confidence: 'low' | 'mid' | 'high';
 }
 
@@ -219,6 +223,7 @@ const MEMORY_HANDLERS: Record<MemoryType, MemoryHandler> = {
           constraints: asStringArray(changePayload.constraints),
           acceptance_criteria: asStringArray(changePayload.acceptance_criteria),
           affected_areas: asStringArray(changePayload.affected_areas),
+          module_ids: asStringArray(changePayload.module_ids),
           related_decision_ids: asStringArray(changePayload.related_decision_ids),
           status: changePayload.status,
         },
@@ -265,6 +270,7 @@ const MEMORY_HANDLERS: Record<MemoryType, MemoryHandler> = {
           alternatives_considered: asStringArray(decisionPayload.alternatives_considered),
           scope: decisionPayload.scope,
           related_change_id: asTrimmedString(decisionPayload.related_change_id) || undefined,
+          module_ids: asStringArray(decisionPayload.module_ids),
           supersedes: asTrimmedString(decisionPayload.supersedes) || undefined,
         },
       }, storage);
@@ -300,6 +306,7 @@ const MEMORY_HANDLERS: Record<MemoryType, MemoryHandler> = {
         note: asTrimmedString(notePayload.note),
         tags: asStringArray(notePayload.tags),
         related_change_id: asTrimmedString(notePayload.related_change_id) || undefined,
+        module_ids: asStringArray(notePayload.module_ids),
       }, storage);
 
       return {
@@ -343,6 +350,7 @@ const MEMORY_HANDLERS: Record<MemoryType, MemoryHandler> = {
           status: progressPayload.status,
           blockers: asStringArray(progressPayload.blockers),
           related_change_id: asTrimmedString(progressPayload.related_change_id) || undefined,
+          module_ids: asStringArray(progressPayload.module_ids),
           confidence: progressPayload.confidence,
         },
       }, storage);

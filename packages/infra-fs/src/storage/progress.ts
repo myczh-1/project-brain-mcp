@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { legacyProgressEntrySchema, parseJsonText, parseNdjsonText, progressEntrySchema } from './validation.js';
 
 export interface ProgressEntry {
   id: string;
@@ -9,6 +10,7 @@ export interface ProgressEntry {
   status?: 'planned' | 'in_progress' | 'blocked' | 'done';
   blockers?: string[];
   related_change_id?: string;
+  module_ids: string[];
   confidence: 'low' | 'mid' | 'high';
 }
 
@@ -25,21 +27,29 @@ export function readProgress(cwd?: string): ProgressEntry[] {
     if (!fs.existsSync(legacyPath)) {
       return [];
     }
-    const legacy = JSON.parse(fs.readFileSync(legacyPath, 'utf-8')) as Array<{
-      date: string;
-      summary: string;
-      confidence: 'low' | 'mid' | 'high';
-    }>;
-    return legacy.map((entry, index) => ({
+    const legacy = parseJsonText(
+      fs.readFileSync(legacyPath, 'utf-8'),
+      legacyPath,
+      legacyProgressEntrySchema.array(),
+      'legacy progress'
+    );
+    const migrated = legacy.map((entry, index) => ({
       id: `legacy-progress-${index + 1}`,
       date: entry.date,
       summary: entry.summary,
+      module_ids: [],
       confidence: entry.confidence,
     }));
+
+    ensureBrainDir(cwd);
+    const ndjsonContent = migrated.map(entry => JSON.stringify(entry)).join('\n') + (migrated.length > 0 ? '\n' : '');
+    fs.writeFileSync(progressPath, ndjsonContent, 'utf-8');
+    fs.renameSync(legacyPath, `${legacyPath}.bak`);
+
+    return migrated;
   }
   const content = fs.readFileSync(progressPath, 'utf-8');
-  const lines = content.trim().split('\n').filter(line => line.trim());
-  return lines.map(line => JSON.parse(line) as ProgressEntry);
+  return parseNdjsonText(content, progressPath, progressEntrySchema, 'progress entry');
 }
 
 export function appendProgress(entry: ProgressEntry, cwd?: string): void {

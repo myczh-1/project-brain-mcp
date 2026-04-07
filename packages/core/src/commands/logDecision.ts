@@ -10,6 +10,7 @@ export interface LogDecisionInput {
     alternatives_considered?: string[];
     scope?: Decision['scope'];
     related_change_id?: string;
+    module_ids?: string[];
     supersedes?: string;
   };
 }
@@ -49,10 +50,12 @@ export async function logDecision(input: LogDecisionInput, storage: StoragePort)
     alternatives_considered: normalize(input.decision.alternatives_considered),
     scope: input.decision.scope || (input.decision.related_change_id ? 'change' : 'project'),
     related_change_id: input.decision.related_change_id?.trim() || undefined,
+    module_ids: normalize(input.decision.module_ids),
     supersedes: input.decision.supersedes?.trim() || undefined,
     created_at: new Date().toISOString(),
   };
 
+  storage.upsertModules(decision.module_ids, cwd);
   storage.appendDecision(decision, cwd);
 
   return {

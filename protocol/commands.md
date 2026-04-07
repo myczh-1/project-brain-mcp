@@ -25,6 +25,11 @@ For runtime convenience workflows, see `protocol/runtime-composites.md`.
 - effect: write one complete `change` snapshot for a specific change ID
 - target: `changes/<change-id>.json`
 
+### `write_modules`
+
+- effect: write one complete `module` array snapshot
+- target: `modules.json`
+
 ### `append_decision`
 
 - effect: append one immutable `decision` record
@@ -57,6 +62,7 @@ Minimal protocol queries are state reads over canonical stored objects.
 - `list_notes`
 - `list_progress`
 - `list_milestones`
+- `list_modules`
 - `get_state`
 
 These queries are the read side of the protocol. Producers should use them, or equivalent direct file reads, before writes when stale state could change the resulting durable record.

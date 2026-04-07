@@ -12,6 +12,7 @@
     "status": { "type": "string", "enum": ["planned", "in_progress", "blocked", "done"] },
     "blockers": { "type": "array", "items": { "type": "string" } },
     "related_change_id": { "type": "string" },
+    "module_ids": { "type": "array", "items": { "type": "string" } },
     "confidence": { "type": "string", "enum": ["low", "mid", "high"] }
   }
 }

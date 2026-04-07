@@ -8,6 +8,7 @@ export interface RecordProgressInput {
     status?: 'planned' | 'in_progress' | 'blocked' | 'done';
     blockers?: string[];
     related_change_id?: string;
+    module_ids?: string[];
     confidence: 'low' | 'mid' | 'high';
   };
   milestone?: {
@@ -40,9 +41,11 @@ export async function recordProgress(input: RecordProgressInput, storage: Storag
         status: input.progress.status,
         blockers: input.progress.blockers,
         related_change_id: input.progress.related_change_id,
+        module_ids: input.progress.module_ids || [],
         confidence: input.progress.confidence,
       };
 
+      storage.upsertModules(entry.module_ids, cwd);
       storage.appendProgress(entry, cwd);
       return { status: 'ok', recorded_type: 'progress', progress_id: entry.id };
     }

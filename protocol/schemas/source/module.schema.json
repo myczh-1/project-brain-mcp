@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-brain.dev/protocol/v0/schemas/source/module.schema.json",
+  "title": "Project Brain Module",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "summary",
+    "aliases",
+    "key_paths",
+    "created_at",
+    "updated_at",
+    "last_used_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string" },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "key_paths": { "type": "array", "items": { "type": "string" } },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "last_used_at": { "type": "string", "format": "date-time" }
+  }
+}

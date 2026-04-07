@@ -4,6 +4,7 @@ export interface CaptureNoteInput {
   note: string;
   tags?: string[];
   related_change_id?: string;
+  module_ids?: string[];
   repo_path: string;
 }
 
@@ -21,8 +22,10 @@ export async function projectCaptureNote(input: CaptureNoteInput, storage: Stora
     tags: input.tags || [],
     note: input.note,
     related_change_id: input.related_change_id,
+    module_ids: input.module_ids || [],
   };
 
+  storage.upsertModules(note.module_ids, cwd);
   storage.appendNote(note, cwd);
 
   return {

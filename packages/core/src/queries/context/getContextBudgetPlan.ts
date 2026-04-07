@@ -60,7 +60,7 @@ function buildWorkflow(entrypoint: RetrievalEntrypoint, budgetMode: BudgetMode) 
   const evidenceShare = budgetMode === 'deep' ? '35%' : '25%';
   return [
     { step: 1, action: 'read project overview', budget_share: '15%', why: 'Start with stable project-level constraints.' },
-    { step: 2, action: 'read one to two relevant domains', budget_share: '25%', why: 'Limit scope and avoid whole-repo noise.' },
+    { step: 2, action: 'read one to two relevant modules', budget_share: '25%', why: 'Limit scope and avoid whole-repo noise.' },
     { step: 3, action: 'build change context', budget_share: '35%', why: 'Assemble task-scoped decisions, progress, and risks.' },
     { step: 4, action: 'pull evidence pack on demand', budget_share: evidenceShare, why: 'Read concrete files/commits only when needed.' },
   ];

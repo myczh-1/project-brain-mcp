@@ -21,6 +21,9 @@ export type { Manifest } from './manifest.js';
 export { readMilestones, updateMilestone, upsertInferredMilestones, writeMilestones } from './milestones.js';
 export type { Milestone } from './milestones.js';
 
+export { readModules, upsertModules, writeModules } from './modules.js';
+export type { ModuleRecord } from './modules.js';
+
 export { readNextActions, writeNextActions } from './nextActions.js';
 export type { NextAction } from './nextActions.js';
 

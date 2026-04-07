@@ -13,6 +13,7 @@ import { appendDecision, readDecisions } from './storage/decisions.js';
 import { atomicWriteFile } from './storage/fileOps.js';
 import { buildFallbackManifest, getManifestPath, manifestExists, readManifest, writeManifest } from './storage/manifest.js';
 import { readMilestones, updateMilestone, upsertInferredMilestones, writeMilestones } from './storage/milestones.js';
+import { readModules, upsertModules, writeModules } from './storage/modules.js';
 import { readNextActions, writeNextActions } from './storage/nextActions.js';
 import { appendNote, generateNoteId, readNotes } from './storage/notes.js';
 import { appendProgress, readProgress } from './storage/progress.js';
@@ -53,6 +54,9 @@ export function createFsStorage(): StoragePort {
     writeMilestones,
     updateMilestone,
     upsertInferredMilestones,
+    readModules,
+    writeModules,
+    upsertModules,
     readNextActions,
     writeNextActions,
     getRepoRootPath,

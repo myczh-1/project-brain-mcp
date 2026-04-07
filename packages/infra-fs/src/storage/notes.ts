@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { noteSchema, parseNdjsonText } from './validation.js';
 
 export interface Note {
   id: string;
@@ -8,6 +9,7 @@ export interface Note {
   tags: string[];
   note: string;
   related_change_id?: string;
+  module_ids: string[];
 }
 
 const NOTES_FILE = 'notes.ndjson';
@@ -23,9 +25,7 @@ export function readNotes(cwd?: string): Note[] {
   }
 
   const content = fs.readFileSync(notesPath, 'utf-8');
-  const lines = content.trim().split('\n').filter(line => line.trim());
-
-  return lines.map(line => JSON.parse(line));
+  return parseNdjsonText(content, notesPath, noteSchema, 'note');
 }
 
 export function appendNote(note: Note, cwd?: string): void {

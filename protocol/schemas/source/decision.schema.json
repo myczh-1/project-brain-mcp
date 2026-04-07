@@ -21,6 +21,7 @@
     "alternatives_considered": { "type": "array", "items": { "type": "string" } },
     "scope": { "type": "string", "enum": ["project", "change", "module"] },
     "related_change_id": { "type": "string" },
+    "module_ids": { "type": "array", "items": { "type": "string" } },
     "supersedes": { "type": "string" },
     "created_at": { "type": "string", "format": "date-time" }
   }

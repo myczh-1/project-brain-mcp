@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
+import { decisionSchema, legacyDecisionSchema, parseJsonText, parseNdjsonText } from './validation.js';
 
 export interface Decision {
   id: string;
@@ -10,6 +11,7 @@ export interface Decision {
   alternatives_considered: string[];
   scope: 'project' | 'change' | 'module';
   related_change_id?: string;
+  module_ids: string[];
   supersedes?: string;
   created_at: string;
 }
@@ -28,11 +30,12 @@ export function readDecisions(cwd?: string): Decision[] {
       return [];
     }
 
-    const legacy = JSON.parse(fs.readFileSync(legacyPath, 'utf-8')) as Array<{
-      decision: string;
-      reason: string;
-      date: string;
-    }>;
+    const legacy = parseJsonText(
+      fs.readFileSync(legacyPath, 'utf-8'),
+      legacyPath,
+      legacyDecisionSchema.array(),
+      'legacy decisions'
+    );
 
     const migrated: Decision[] = legacy.map((item, index) => ({
       id: `legacy-decision-${index + 1}`,
@@ -41,6 +44,7 @@ export function readDecisions(cwd?: string): Decision[] {
       rationale: item.reason,
       alternatives_considered: [],
       scope: 'project',
+      module_ids: [],
       created_at: item.date,
     }));
 
@@ -53,8 +57,7 @@ export function readDecisions(cwd?: string): Decision[] {
     return migrated;
   }
   const content = fs.readFileSync(decisionsPath, 'utf-8');
-  const lines = content.trim().split('\n').filter(line => line.trim());
-  return lines.map(line => JSON.parse(line) as Decision);
+  return parseNdjsonText(content, decisionsPath, decisionSchema, 'decision');
 }
 
 export function appendDecision(decision: Decision, cwd?: string): void {

@@ -11,6 +11,7 @@ export interface CreateChangeInput {
     constraints?: string[];
     acceptance_criteria?: string[];
     affected_areas?: string[];
+    module_ids?: string[];
     related_decision_ids?: string[];
     status?: ChangeSpec['status'];
   };
@@ -45,11 +46,13 @@ export async function createChange(input: CreateChangeInput, storage: StoragePor
     constraints: normalize(input.change.constraints),
     acceptance_criteria: normalize(input.change.acceptance_criteria),
     affected_areas: normalize(input.change.affected_areas),
+    module_ids: normalize(input.change.module_ids),
     related_decision_ids: normalize(input.change.related_decision_ids),
     created_at: now,
     updated_at: now,
   };
 
+  storage.upsertModules(change.module_ids, cwd);
   const changePath = storage.writeChange(change, cwd);
 
   return {

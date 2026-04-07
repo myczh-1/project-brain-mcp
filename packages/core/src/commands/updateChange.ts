@@ -12,6 +12,7 @@ export interface UpdateChangeInput {
     constraints?: string[];
     acceptance_criteria?: string[];
     affected_areas?: string[];
+    module_ids?: string[];
     related_decision_ids?: string[];
   };
 }
@@ -43,10 +44,12 @@ export async function updateChange(input: UpdateChangeInput, storage: StoragePor
     constraints: normalize(input.patch.constraints) || existing.constraints,
     acceptance_criteria: normalize(input.patch.acceptance_criteria) || existing.acceptance_criteria,
     affected_areas: normalize(input.patch.affected_areas) || existing.affected_areas,
+    module_ids: normalize(input.patch.module_ids) || existing.module_ids,
     related_decision_ids: normalize(input.patch.related_decision_ids) || existing.related_decision_ids,
     updated_at: new Date().toISOString(),
   };
 
+  storage.upsertModules(next.module_ids, cwd);
   const changePath = storage.writeChange(next, cwd);
 
   return {

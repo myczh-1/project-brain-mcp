@@ -127,6 +127,7 @@ function readOpenSpecChange(changeId: string, storage: StoragePort, cwd?: string
         acceptance_criteria: parsed.acceptance_criteria,
         affected_areas: parsed.affected_areas,
         related_decision_ids: [],
+        module_ids: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -146,6 +147,7 @@ function readOpenSpecChange(changeId: string, storage: StoragePort, cwd?: string
         acceptance_criteria: parsed.acceptance_criteria,
         affected_areas: parsed.affected_areas,
         related_decision_ids: [],
+        module_ids: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

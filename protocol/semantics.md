@@ -11,6 +11,7 @@ This table is the canonical source for persistence semantics in Protocol v0.
 | `manifest` | `manifest.json` | snapshot | replace full file | last write wins | optional identity anchor |
 | `project_spec` | `project-spec.json` | snapshot | replace full file | last write wins | stable project truth |
 | `change` | `changes/<id>.json` | snapshot | replace full file | last write wins | one file per change ID |
+| `module` | `modules.json` | snapshot | replace full array | last write wins | stable module registry |
 | `decision` | `decisions.ndjson` | append-only | never modify prior lines | immutable entry stream | one JSON object per line |
 | `note` | `notes.ndjson` | append-only | never modify prior lines | immutable entry stream | one JSON object per line |
 | `progress` | `progress.ndjson` | append-only | never modify prior lines | immutable entry stream | one JSON object per line |
@@ -23,6 +24,7 @@ Minimal interoperable protocol objects are:
 - `manifest`
 - `project_spec`
 - `change`
+- `module`
 - `decision`
 - `note`
 - `progress`
@@ -49,6 +51,7 @@ Derived artifacts may be documented as optional extensions, but they are not req
 Protocol v0 expects producers to refresh their view of durable state before emitting new writes when stale state would change the result.
 
 - Before writing a snapshot object such as `manifest`, `project_spec`, `change`, or `milestone`, a producer should read the current stored state for that target first.
+- Before writing a snapshot object such as `manifest`, `project_spec`, `change`, `module`, or `milestone`, a producer should read the current stored state for that target first.
 - Before appending `progress`, `decision`, or `note` as part of continuing existing work, a producer should read the relevant current state when it may be operating on stale assumptions.
 - If a producer has not checked current state recently and is about to update durable memory, the safe default is read first and then write.
 
@@ -59,9 +62,13 @@ This rule matters because snapshot files use full replacement semantics and Prot
 Protocol v0 uses soft references.
 
 - `change.related_decision_ids[]` may refer to decision IDs in `decisions.ndjson`
+- `change.module_ids[]` may refer to module IDs in `modules.json`
 - `decision.related_change_id` may refer to a change ID in `changes/`
+- `decision.module_ids[]` may refer to module IDs in `modules.json`
 - `note.related_change_id` may refer to a change ID in `changes/`
+- `note.module_ids[]` may refer to module IDs in `modules.json`
 - `progress.related_change_id` may refer to a change ID in `changes/`
+- `progress.module_ids[]` may refer to module IDs in `modules.json`
 
 Writers should only emit references they believe exist or will exist immediately.
 Readers should tolerate unresolved references.

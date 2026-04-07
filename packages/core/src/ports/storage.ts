@@ -31,9 +31,21 @@ export interface ChangeSpec {
   constraints: string[];
   acceptance_criteria: string[];
   affected_areas: string[];
+  module_ids: string[];
   related_decision_ids: string[];
   created_at: string;
   updated_at: string;
+}
+
+export interface ModuleRecord {
+  id: string;
+  name: string;
+  summary: string;
+  aliases: string[];
+  key_paths: string[];
+  created_at: string;
+  updated_at: string;
+  last_used_at: string;
 }
 
 export interface Decision {
@@ -44,6 +56,7 @@ export interface Decision {
   alternatives_considered: string[];
   scope: 'project' | 'change' | 'module';
   related_change_id?: string;
+  module_ids: string[];
   supersedes?: string;
   created_at: string;
 }
@@ -54,6 +67,7 @@ export interface Note {
   tags: string[];
   note: string;
   related_change_id?: string;
+  module_ids: string[];
 }
 
 export interface ProgressEntry {
@@ -63,6 +77,7 @@ export interface ProgressEntry {
   status?: 'planned' | 'in_progress' | 'blocked' | 'done';
   blockers?: string[];
   related_change_id?: string;
+  module_ids: string[];
   confidence: 'low' | 'mid' | 'high';
 }
 
@@ -134,6 +149,10 @@ export interface StoragePort {
 
   readNextActions(cwd?: string): NextAction[];
   writeNextActions(actions: NextAction[], cwd?: string): void;
+
+  readModules(cwd?: string): ModuleRecord[];
+  writeModules(modules: ModuleRecord[], cwd?: string): void;
+  upsertModules(moduleIds: string[], cwd?: string): ModuleRecord[];
 
   getRepoRootPath(cwd?: string): string;
 

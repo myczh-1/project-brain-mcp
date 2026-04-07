@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
+import { changeSpecSchema, parseJsonText } from './validation.js';
 
 export type ChangeStatus = 'proposed' | 'active' | 'done' | 'dropped';
 
@@ -15,6 +16,7 @@ export interface ChangeSpec {
   constraints: string[];
   acceptance_criteria: string[];
   affected_areas: string[];
+  module_ids: string[];
   related_decision_ids: string[];
   created_at: string;
   updated_at: string;
@@ -60,7 +62,7 @@ export function readChange(changeId: string, cwd?: string): ChangeSpec | null {
     return null;
   }
 
-  return JSON.parse(fs.readFileSync(changePath, 'utf-8')) as ChangeSpec;
+  return parseJsonText(fs.readFileSync(changePath, 'utf-8'), changePath, changeSpecSchema, 'change');
 }
 
 export function readAllChanges(cwd?: string): ChangeSpec[] {
@@ -73,7 +75,7 @@ export function readAllChanges(cwd?: string): ChangeSpec[] {
     .readdirSync(dir)
     .filter(file => file.endsWith('.json'))
     .map(file => path.join(dir, file))
-    .map(filePath => JSON.parse(fs.readFileSync(filePath, 'utf-8')) as ChangeSpec)
+    .map(filePath => parseJsonText(fs.readFileSync(filePath, 'utf-8'), filePath, changeSpecSchema, 'change'))
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
 }
 

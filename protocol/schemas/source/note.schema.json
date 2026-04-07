@@ -10,6 +10,7 @@
     "time": { "type": "string", "format": "date-time" },
     "tags": { "type": "array", "items": { "type": "string" } },
     "note": { "type": "string", "minLength": 1 },
-    "related_change_id": { "type": "string" }
+    "related_change_id": { "type": "string" },
+    "module_ids": { "type": "array", "items": { "type": "string" } }
   }
 }

@@ -1,4 +1,4 @@
-import type { StoragePort, ChangeSpec, Decision, Manifest, Milestone, Note, ProgressEntry, ProjectSpec } from '../ports/storage.js';
+import type { StoragePort, ChangeSpec, Decision, Manifest, Milestone, ModuleRecord, Note, ProgressEntry, ProjectSpec } from '../ports/storage.js';
 import {
   projectCaptureNote,
   checkpointWork,
@@ -36,6 +36,7 @@ export interface RuntimeStateSnapshot {
   manifest: Manifest | null;
   project_spec: ProjectSpec | null;
   changes: ChangeSpec[];
+  modules: ModuleRecord[];
   decisions: Decision[];
   notes: Note[];
   progress: ProgressEntry[];
@@ -89,6 +90,7 @@ export function createRuntimeService(storage: StoragePort): RuntimeService {
         manifest: storage.readManifest(repoPath),
         project_spec: storage.readProjectSpec(repoPath),
         changes: storage.readAllChanges(repoPath),
+        modules: storage.readModules(repoPath),
         decisions: storage.readDecisions(repoPath),
         notes: storage.readNotes(repoPath),
         progress: storage.readProgress(repoPath),

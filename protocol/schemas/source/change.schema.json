@@ -14,9 +14,9 @@
     "constraints",
     "acceptance_criteria",
     "affected_areas",
-    "related_decision_ids",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "related_decision_ids"
   ],
   "properties": {
     "id": { "type": "string", "minLength": 1 },
@@ -28,6 +28,7 @@
     "constraints": { "type": "array", "items": { "type": "string" } },
     "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
     "affected_areas": { "type": "array", "items": { "type": "string" } },
+    "module_ids": { "type": "array", "items": { "type": "string" } },
     "related_decision_ids": { "type": "array", "items": { "type": "string" } },
     "created_at": { "type": "string", "format": "date-time" },
     "updated_at": { "type": "string", "format": "date-time" }
