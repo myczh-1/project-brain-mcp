@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { parseCliArgs, printHelp, runDoctor, runInit, runSetup } from './setup.js';
+import { runStdio } from './stdio.js';
 
 async function run() {
   const { command, nonInteractive } = parseCliArgs(process.argv);
@@ -13,6 +14,9 @@ async function run() {
       return;
     case 'init':
       await runInit();
+      return;
+    case 'stdio':
+      await runStdio();
       return;
     case 'help':
       printHelp();

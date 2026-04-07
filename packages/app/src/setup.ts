@@ -13,13 +13,13 @@ interface RepoFacts {
 }
 
 function parseArgs(argv: string[]): {
-  command: 'setup' | 'doctor' | 'init' | 'help';
+  command: 'setup' | 'doctor' | 'init' | 'stdio' | 'help';
   nonInteractive: boolean;
 } {
   const args = argv.slice(2);
   const first = args[0];
   const command =
-    first === 'setup' || first === 'doctor' || first === 'init' || first === 'help' || first === '--help' || first === '-h'
+    first === 'setup' || first === 'doctor' || first === 'init' || first === 'stdio' || first === 'help' || first === '--help' || first === '-h'
       ? first
       : 'help';
 
@@ -159,6 +159,7 @@ export function printHelp(): void {
   console.error('  project-brain setup           Initialize .project-brain/ and print file-based workflow guidance');
   console.error('  project-brain doctor          Check repository readiness for the file-based workflow');
   console.error('  project-brain init            Initialize .project-brain/ with a minimal manifest');
+  console.error('  project-brain stdio           Run the runtime tool surface over newline-delimited JSON on stdin/stdout');
   console.error('  project-brain help            Show this help');
 }
 
