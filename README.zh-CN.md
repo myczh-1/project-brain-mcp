@@ -22,7 +22,6 @@
 
 ```text
 Please install Project Brain in this repository by following https://github.com/myczh-1/project-brain/docs/install.md.
-Use project-level configuration when possible.
 Configure Project Brain through `project-brain stdio`.
 Do not edit `.project-brain/` files directly.
 Explain which files you plan to modify before editing them.
@@ -46,6 +45,7 @@ Explain which files you plan to modify before editing them.
 安装完成后，AI 助手会：
 
 - 通过 `project-brain stdio` 调用 Project Brain 工具接口。
+- 在存在 `AGENTS.md` 时遵循仓库级的使用说明。
 - 在需要项目记忆或任务上下文时读取 Project Brain。
 - 通过 stdio 工具更新 Project Brain，而不是直接编辑 `.project-brain/` 文件。
 

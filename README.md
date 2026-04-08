@@ -23,7 +23,6 @@ Copy the text below into your AI assistant and let it complete the installation:
 
 ```text
 Please install Project Brain in this repository by following https://github.com/myczh-1/project-brain/docs/install.md.
-Use project-level configuration when possible.
 Configure Project Brain through `project-brain stdio`.
 Do not edit `.project-brain/` files directly.
 Explain which files you plan to modify before editing them.
@@ -44,6 +43,7 @@ Or, if you prefer, you can follow the docs and install it manually.
 Once installed, your AI assistant will:
 
 - call Project Brain through `project-brain stdio`,
+- follow repository-local instructions from `AGENTS.md` when present,
 - read Project Brain when it needs project memory or task context,
 - and update Project Brain through the stdio tools instead of editing `.project-brain/` files directly.
 

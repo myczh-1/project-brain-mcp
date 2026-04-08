@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { projectInit } from '@myczh/project-brain/core';
 import { createFsStorage } from '@myczh/project-brain/infra-fs';
+import { ensureRepoAgentsFile } from './agents.js';
 
 interface RepoFacts {
   cwd: string;
@@ -53,8 +54,8 @@ function printHeader(title: string): void {
 
 function printSetupSummary(facts: RepoFacts): void {
   console.error('Selected: Bootstrap mode');
-  console.error('- This CLI bootstraps `.project-brain/` and points your AI assistant at the installer guide.');
-  console.error('- Installation is only complete after your AI tool config is updated to use `project-brain stdio`.');
+  console.error('- This CLI bootstraps `.project-brain/` and writes repository-local `AGENTS.md` guidance for Project Brain.');
+  console.error('- Tool installation is only complete after your AI tool config is updated to use `project-brain stdio`.');
   if (facts.hasOpenSpec) {
     console.error('- OpenSpec detected, so this repository is ready for the recommended file-based workflow.');
   }
@@ -89,13 +90,18 @@ async function ensureBrainInitialized(facts: RepoFacts): Promise<void> {
   }
 }
 
+function ensureAgentsGuidance(facts: RepoFacts): void {
+  const agentsPath = ensureRepoAgentsFile(facts.repoRoot);
+  console.error(`Repository guidance updated at ${agentsPath}`);
+}
+
 function printLightweightInstructions(facts: RepoFacts): void {
   console.error('');
   console.error('Bootstrap next steps');
-  console.error('- Open `docs/install.md` and ask your AI assistant to complete the installation for this repository.');
-  console.error('- The assistant should first ask which AI tool to configure and whether you want project-level or global installation.');
-  console.error('- The assistant should check whether that tool and scope are already installed before changing config.');
-  console.error('- Installation is not complete until your AI tool is configured to use `project-brain stdio`.');
+  console.error('- Open `docs/install.md` and ask your AI assistant to connect your chosen AI tool to `project-brain stdio`.');
+  console.error('- The assistant should ask which AI tool to configure, then apply the closest supported persistent MCP/tool configuration for that tool.');
+  console.error('- Repository-local Project Brain guidance now lives in `AGENTS.md` and can be checked into version control.');
+  console.error('- Tool installation is not complete until your AI tool is configured to use `project-brain stdio`.');
   if (facts.hasOpenSpec) {
     console.error('- OpenSpec detected: the installer should preserve the OpenSpec + Project Brain workflow.');
   }
@@ -119,6 +125,7 @@ export async function runSetup(nonInteractive = false): Promise<void> {
   }
   printSetupSummary(facts);
   await ensureBrainInitialized(facts);
+  ensureAgentsGuidance(facts);
   printLightweightInstructions(facts);
 }
 
@@ -140,7 +147,7 @@ export async function runDoctor(): Promise<void> {
   if (!facts.hasBrainDir) {
     console.error('- Run `project-brain setup` to initialize Project Brain for this repository.');
   } else {
-    console.error('- Ask your AI assistant to follow `docs/install.md` for the final tool integration.');
+    console.error('- Ask your AI assistant to follow `docs/install.md` for the final AI tool integration.');
   }
 }
 
@@ -148,16 +155,17 @@ export async function runInit(): Promise<void> {
   const facts = detectRepoFacts();
   printHeader('Project Brain Init');
   await ensureBrainInitialized(facts);
-  console.error('- Next: run `project-brain setup` for mode-specific guidance.');
+  ensureAgentsGuidance(facts);
+  console.error('- Next: connect your AI tool to `project-brain stdio` by following `docs/install.md`.');
 }
 
 export function printHelp(): void {
   console.error('Project Brain');
   console.error('');
   console.error('Usage:');
-  console.error('  project-brain setup           Bootstrap this repository and point your AI assistant at the installer guide');
+  console.error('  project-brain setup           Initialize `.project-brain/`, update `AGENTS.md`, and point your AI assistant at the installer guide');
   console.error('  project-brain doctor          Check repository readiness before or after AI-assisted installation');
-  console.error('  project-brain init            Initialize .project-brain/ with a minimal manifest');
+  console.error('  project-brain init            Initialize `.project-brain/` and update repository-local `AGENTS.md` guidance');
   console.error('  project-brain stdio           Run the runtime tool surface over newline-delimited JSON on stdin/stdout');
   console.error('  project-brain help            Show this help');
 }
