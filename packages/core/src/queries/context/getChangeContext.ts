@@ -50,6 +50,32 @@ export interface ChangeContextOutput {
   };
 }
 
+interface RetrievalPools {
+  decisions: ReturnType<StoragePort['readDecisions']>;
+  progress: ReturnType<StoragePort['readProgress']>;
+  notes: ReturnType<StoragePort['readNotes']>;
+  milestones: ReturnType<StoragePort['readMilestones']>;
+}
+
+interface FilteredRetrievalEvidence {
+  decisions: ReturnType<StoragePort['readDecisions']>;
+  progress: ReturnType<StoragePort['readProgress']>;
+  notes: ReturnType<StoragePort['readNotes']>;
+}
+
+interface RetrievalMetaSummary {
+  confidence: 'low' | 'mid' | 'high';
+  low_confidence_reason?: string;
+  suggested_fallback_entrypoint?: 'investigation';
+  investigation_term_hints?: string[];
+  history_evidence_chain?: Array<{
+    source: 'decision' | 'note' | 'progress';
+    ref: string;
+    excerpt: string;
+  }>;
+  why_not_found?: string;
+}
+
 interface OpenSpecChange {
   title: string;
   summary: string;
@@ -59,6 +85,8 @@ interface OpenSpecChange {
   acceptance_criteria: string[];
   affected_areas: string[];
 }
+
+const UNKNOWN_OPENSPEC_TIMESTAMP = '';
 
 function parseBulletSections(content: string): OpenSpecChange {
   const lines = content.split('\n');
@@ -128,8 +156,8 @@ function readOpenSpecChange(changeId: string, storage: StoragePort, cwd?: string
         affected_areas: parsed.affected_areas,
         related_decision_ids: [],
         module_ids: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: UNKNOWN_OPENSPEC_TIMESTAMP,
+        updated_at: UNKNOWN_OPENSPEC_TIMESTAMP,
       };
     }
 
@@ -148,8 +176,8 @@ function readOpenSpecChange(changeId: string, storage: StoragePort, cwd?: string
         affected_areas: parsed.affected_areas,
         related_decision_ids: [],
         module_ids: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: UNKNOWN_OPENSPEC_TIMESTAMP,
+        updated_at: UNKNOWN_OPENSPEC_TIMESTAMP,
       };
     }
   }
@@ -176,81 +204,126 @@ function buildRisks(
   return risks;
 }
 
+function resolveChange(changeId: string, storage: StoragePort, cwd: string): ChangeSpec {
+  const change = storage.readChange(changeId, cwd) || readOpenSpecChange(changeId, storage, cwd);
+  if (!change) {
+    throw new Error(`Change not found in ProjectBrain or OpenSpec: ${changeId}`);
+  }
+
+  return change;
+}
+
+function readRetrievalPools(storage: StoragePort, cwd: string): RetrievalPools {
+  return {
+    decisions: storage.readDecisions(cwd),
+    progress: storage.readProgress(cwd),
+    notes: storage.readNotes(cwd),
+    milestones: storage.readMilestones(cwd),
+  };
+}
+
+function filterRetrievalEvidence(args: {
+  entrypoint: RetrievalEntrypoint;
+  termHints: string[];
+  change: ChangeSpec;
+  pools: RetrievalPools;
+}): FilteredRetrievalEvidence {
+  const { entrypoint, termHints, change, pools } = args;
+
+  const decisions = pools.decisions.filter(decision => {
+    const related = change.related_decision_ids.includes(decision.id) || decision.related_change_id === change.id;
+    if (entrypoint === 'standard') return related;
+    return related || textMatchesTerms(`${decision.title} ${decision.decision} ${decision.rationale}`, termHints);
+  });
+
+  const progress = pools.progress.filter(entry => {
+    const related = entry.related_change_id === change.id;
+    if (entrypoint === 'standard') return related;
+    return related || textMatchesTerms(entry.summary, termHints);
+  });
+
+  const notes = pools.notes.filter(note => {
+    const related = note.related_change_id === change.id;
+    if (entrypoint === 'standard') return related;
+    return related || textMatchesTerms(note.note, termHints);
+  });
+
+  return { decisions, progress, notes };
+}
+
+function buildRetrievalMeta(args: {
+  entrypoint: RetrievalEntrypoint;
+  termHints: string[];
+  decisions: ReturnType<StoragePort['readDecisions']>;
+  notes: ReturnType<StoragePort['readNotes']>;
+  progress: ReturnType<StoragePort['readProgress']>;
+  commitsCount: number;
+}): RetrievalMetaSummary {
+  const confidenceResult = evaluateRetrievalConfidence(
+    args.entrypoint,
+    args.decisions.length,
+    args.notes.length,
+    args.progress.length,
+    args.commitsCount
+  );
+  const historyEvidenceChain = args.entrypoint === 'investigation'
+    ? buildHistoryEvidenceChain(args.decisions, args.notes, args.progress)
+    : undefined;
+
+  return {
+    confidence: confidenceResult.confidence,
+    low_confidence_reason: confidenceResult.low_confidence_reason,
+    suggested_fallback_entrypoint: confidenceResult.suggested_fallback_entrypoint,
+    investigation_term_hints: args.entrypoint === 'investigation' ? args.termHints : undefined,
+    history_evidence_chain: historyEvidenceChain,
+    why_not_found:
+      args.entrypoint === 'investigation' && historyEvidenceChain && historyEvidenceChain.length === 0
+        ? 'No historical evidence matched expanded terms. Consider widening task terms or time span.'
+        : undefined,
+  };
+}
+
 export async function changeContext(input: ChangeContextInput, storage: StoragePort, git: GitPort): Promise<ChangeContextOutput> {
   const cwd = input.repo_path;
   const entrypoint = input.retrieval_entrypoint || 'standard';
   const recentCommitCount = resolveCommitWindow(entrypoint, input.recent_commits);
   const manifest = storage.readManifest(cwd) || storage.buildFallbackManifest(cwd);
-
   const projectSpec = storage.readProjectSpec(cwd);
-  const change = storage.readChange(input.change_id, cwd) || readOpenSpecChange(input.change_id, storage, cwd);
-  if (!change) {
-    throw new Error(`Change not found in ProjectBrain or OpenSpec: ${input.change_id}`);
-  }
-
+  const change = resolveChange(input.change_id, storage, cwd);
   const termHints = expandRetrievalTerms(input.task, [change.title, change.summary, ...change.affected_areas]);
-  const decisionsPool = storage.readDecisions(cwd);
-  const progressPool = storage.readProgress(cwd);
-  const notesPool = storage.readNotes(cwd);
-
-  const decisions = decisionsPool.filter(decision => {
-    const related = change.related_decision_ids.includes(decision.id) || decision.related_change_id === change.id;
-    if (entrypoint === 'standard') return related;
-    return related || textMatchesTerms(`${decision.title} ${decision.decision} ${decision.rationale}`, termHints);
-  });
-  const progress = progressPool.filter(entry => {
-    const related = entry.related_change_id === change.id;
-    if (entrypoint === 'standard') return related;
-    return related || textMatchesTerms(entry.summary, termHints);
-  });
-  const milestones = storage.readMilestones(cwd);
-  const notes = notesPool.filter(note => {
-    const related = note.related_change_id === change.id;
-    if (entrypoint === 'standard') return related;
-    return related || textMatchesTerms(note.note, termHints);
-  });
+  const pools = readRetrievalPools(storage, cwd);
+  const evidence = filterRetrievalEvidence({ entrypoint, termHints, change, pools });
   const commits = git.parseLog(recentCommitCount, cwd);
   const hotPaths = git.calculateHotPaths(commits);
-  const recommendations = recommendNextActions(milestones, commits, hotPaths, progress, decisions);
-
-  const confidenceResult = evaluateRetrievalConfidence(
+  const recommendations = recommendNextActions(pools.milestones, commits, hotPaths, evidence.progress, evidence.decisions);
+  const retrievalMeta = buildRetrievalMeta({
     entrypoint,
-    decisions.length,
-    notes.length,
-    progress.length,
-    commits.length
-  );
-  const historyEvidenceChain = entrypoint === 'investigation'
-    ? buildHistoryEvidenceChain(decisions, notes, progress)
-    : undefined;
+    termHints,
+    decisions: evidence.decisions,
+    notes: evidence.notes,
+    progress: evidence.progress,
+    commitsCount: commits.length,
+  });
 
   return {
     project_identity: manifest,
     stable_rules: projectSpec,
     change_contract: change,
-    relevant_decisions: decisions,
+    relevant_decisions: evidence.decisions,
     execution_state: {
-      progress,
-      milestones,
-      notes,
+      progress: evidence.progress,
+      milestones: pools.milestones,
+      notes: evidence.notes,
     },
     code_evidence: {
       commits: commits.slice(0, 10),
       hot_paths: hotPaths.slice(0, 10),
     },
     recommended_next_actions: recommendations.next_actions,
-    risks_or_unknowns: buildRisks(projectSpec, change, decisions.length, progress.length, commits.length),
+    risks_or_unknowns: buildRisks(projectSpec, change, evidence.decisions.length, evidence.progress.length, commits.length),
     retrieval_meta: {
       entrypoint,
-      confidence: confidenceResult.confidence,
-      low_confidence_reason: confidenceResult.low_confidence_reason,
-      suggested_fallback_entrypoint: confidenceResult.suggested_fallback_entrypoint,
-      investigation_term_hints: entrypoint === 'investigation' ? termHints : undefined,
-      history_evidence_chain: historyEvidenceChain,
-      why_not_found:
-        entrypoint === 'investigation' && historyEvidenceChain && historyEvidenceChain.length === 0
-          ? 'No historical evidence matched expanded terms. Consider widening task terms or time span.'
-          : undefined,
+      ...retrievalMeta,
     },
   };
 }
