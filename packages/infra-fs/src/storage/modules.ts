@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
-import { moduleSchema, parseJsonText } from './validation.js';
+import { parseJsonText, moduleSchema } from './validation.js';
 
 export interface ModuleRecord {
   id: string;
@@ -17,12 +17,7 @@ export interface ModuleRecord {
 
 const MODULES_FILE = 'modules.json';
 
-export function getModulesPath(cwd?: string): string {
-  return path.join(getBrainDir(cwd), MODULES_FILE);
-}
-
-export function readModules(cwd?: string): ModuleRecord[] {
-  const modulesPath = getModulesPath(cwd);
+function readModulesFromPath(modulesPath: string): ModuleRecord[] {
   if (!fs.existsSync(modulesPath)) {
     return [];
   }
@@ -35,10 +30,21 @@ export function readModules(cwd?: string): ModuleRecord[] {
   );
 }
 
+function writeModulesToPath(modulesPath: string, modules: ModuleRecord[]): void {
+  atomicWriteFile(modulesPath, JSON.stringify(modules, null, 2));
+}
+
+export function getModulesPath(cwd?: string): string {
+  return path.join(getBrainDir(cwd), MODULES_FILE);
+}
+
+export function readModules(cwd?: string): ModuleRecord[] {
+  return readModulesFromPath(getModulesPath(cwd));
+}
+
 export function writeModules(modules: ModuleRecord[], cwd?: string): void {
   ensureBrainDir(cwd);
-  const modulesPath = getModulesPath(cwd);
-  atomicWriteFile(modulesPath, JSON.stringify(modules, null, 2));
+  writeModulesToPath(getModulesPath(cwd), modules);
 }
 
 function sanitizeModuleId(value: string): string {
@@ -51,12 +57,14 @@ function sanitizeModuleId(value: string): string {
 }
 
 export function upsertModules(moduleIds: string[], cwd?: string): ModuleRecord[] {
+  const brainDir = ensureBrainDir(cwd);
+  const modulesPath = path.join(brainDir, MODULES_FILE);
   const requested = Array.from(new Set(moduleIds.map(sanitizeModuleId).filter(Boolean)));
   if (requested.length === 0) {
-    return readModules(cwd);
+    return readModulesFromPath(modulesPath);
   }
 
-  const modules = readModules(cwd);
+  const modules = readModulesFromPath(modulesPath);
   const now = new Date().toISOString();
   const byId = new Map(modules.map(module => [module.id, module]));
 
@@ -83,6 +91,6 @@ export function upsertModules(moduleIds: string[], cwd?: string): ModuleRecord[]
   }
 
   modules.sort((a, b) => b.last_used_at.localeCompare(a.last_used_at));
-  writeModules(modules, cwd);
+  writeModulesToPath(modulesPath, modules);
   return modules;
 }
