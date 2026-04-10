@@ -76,6 +76,7 @@ export type {
 } from './queries/index.js';
 
 export { createRuntimeService, createRuntime } from './runtime/index.js';
+export { parseRuntimeMessage, runtimeMessageSchema } from './runtime/index.js';
 export type {
   RuntimeService,
   RuntimeStateSnapshot,

@@ -11,6 +11,7 @@ import type {
 } from './protocol.js';
 
 export { createRuntimeService } from './service.js';
+export { parseRuntimeMessage, runtimeMessageSchema } from './protocol.js';
 export type { RuntimeService, RuntimeStateSnapshot } from './service.js';
 export type {
   RuntimeCommand,

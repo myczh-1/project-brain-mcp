@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type {
   CaptureNoteInput,
   CaptureNoteOutput,
@@ -41,6 +42,42 @@ import type {
   FinishWorkOutput as QueryFinishWorkOutput,
 } from '../queries/index.js';
 import type { RuntimeStateSnapshot } from './service.js';
+
+const runtimeInputSchema = z.record(z.string(), z.unknown());
+
+const runtimeInputMessageTypes = [
+  'initialize_project',
+  'define_project_spec',
+  'create_change',
+  'update_change',
+  'log_decision',
+  'capture_note',
+  'record_progress',
+  'start_work',
+  'checkpoint_work',
+  'ingest_memory',
+  'finish_work',
+  'get_dashboard',
+  'get_project_context',
+  'get_change_context',
+  'list_modules',
+  'get_module_context',
+  'get_context_budget_plan',
+  'get_recent_activity',
+  'analyze',
+] as const;
+
+const runtimeInputMessageSchema = z.object({
+  type: z.enum(runtimeInputMessageTypes),
+  input: runtimeInputSchema,
+});
+
+const getStateMessageSchema = z.object({
+  type: z.literal('get_state'),
+  repo_path: z.string().optional().default(''),
+});
+
+export const runtimeMessageSchema = z.union([runtimeInputMessageSchema, getStateMessageSchema]);
 
 export type RuntimeCommand =
   | { type: 'initialize_project'; input: ProjectInitInput }
@@ -99,3 +136,7 @@ export type RuntimeQueryResult =
   ;
 
 export type RuntimeMessageResult = RuntimeCommandResult | RuntimeQueryResult;
+
+export function parseRuntimeMessage(value: unknown): RuntimeMessage {
+  return runtimeMessageSchema.parse(value) as RuntimeMessage;
+}
