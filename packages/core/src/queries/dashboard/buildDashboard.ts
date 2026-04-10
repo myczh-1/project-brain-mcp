@@ -13,6 +13,29 @@ export interface BuildDashboardInput {
   recent_commits?: number;
 }
 
+interface DashboardMemorySources {
+  projectSpec: ReturnType<StoragePort['readProjectSpec']>;
+  progressEntries: ReturnType<StoragePort['readProgress']>;
+  decisions: Decision[];
+  milestones: ReturnType<StoragePort['readMilestones']>;
+  notes: ReturnType<StoragePort['readNotes']>;
+}
+
+interface DashboardSignals {
+  analysis: Awaited<ReturnType<typeof brainAnalyze>> | null;
+  context: Awaited<ReturnType<typeof projectContext>> | null;
+  recentActivity: Awaited<ReturnType<typeof projectRecentActivity>> | null;
+  suggestedActions: Awaited<ReturnType<typeof suggestNextActionsTool>>;
+}
+
+interface NormalizedDashboardActivity {
+  milestoneList: Milestone[];
+  recentCommitsList: ReturnType<GitPort['parseLog']>;
+  hotPaths: ReturnType<GitPort['calculateHotPaths']>;
+  lastActiveAt: string | null;
+  completedMilestones: number;
+}
+
 const MEMORY_PREVIEW_COUNT = 5;
 
 function buildMemorySection<T>(title: string, items: T[], summary: string, emptyMessage: string): DashboardMemoryListSection<T> {
@@ -97,51 +120,115 @@ function buildUninitializedDashboard(repoPath: string, includeDeepAnalysis: bool
   };
 }
 
-async function buildFullDashboard(manifest: Manifest, repoPath: string, includeDeepAnalysis: boolean, recentCommits: number, generatedAt: string, storage: StoragePort, git: GitPort): Promise<DashboardData> {
-  const projectSpec = storage.readProjectSpec(repoPath);
-  const progressEntries = storage.readProgress(repoPath);
-  const decisions = normalizeDecisions(storage.readDecisions(repoPath));
-  const milestones = storage.readMilestones(repoPath);
-  const notes = storage.readNotes(repoPath);
+function readDashboardMemorySources(repoPath: string, storage: StoragePort): DashboardMemorySources {
+  return {
+    projectSpec: storage.readProjectSpec(repoPath),
+    progressEntries: storage.readProgress(repoPath),
+    decisions: normalizeDecisions(storage.readDecisions(repoPath)),
+    milestones: storage.readMilestones(repoPath),
+    notes: storage.readNotes(repoPath),
+  };
+}
 
-  const analysis = includeDeepAnalysis ? await brainAnalyze({ repo_path: repoPath, depth: 'full', recent_commits: recentCommits }, storage, git) : null;
-  const context = includeDeepAnalysis ? null : await projectContext({ repo_path: repoPath }, storage, git);
-  const recentActivity = includeDeepAnalysis ? null : await projectRecentActivity({ repo_path: repoPath, limit: Math.min(recentCommits, 10) }, git);
+async function readDashboardSignals(
+  repoPath: string,
+  includeDeepAnalysis: boolean,
+  recentCommits: number,
+  storage: StoragePort,
+  git: GitPort
+): Promise<DashboardSignals> {
+  const analysis = includeDeepAnalysis
+    ? await brainAnalyze({ repo_path: repoPath, depth: 'full', recent_commits: recentCommits }, storage, git)
+    : null;
+  const context = includeDeepAnalysis
+    ? null
+    : await projectContext({ repo_path: repoPath }, storage, git);
+  const recentActivity = includeDeepAnalysis
+    ? null
+    : await projectRecentActivity({ repo_path: repoPath, limit: Math.min(recentCommits, 10) }, git);
   const suggestedActions = await suggestNextActionsTool({ repo_path: repoPath, limit: 5, recent_commits: recentCommits }, storage, git);
 
-  const milestoneList: Milestone[] = analysis?.progress.milestones ?? milestones;
-  const recentCommitsList = analysis?.recent_activity.commits ?? recentActivity?.commits ?? [];
-  const hotPaths = analysis?.recent_activity.hot_paths ?? recentActivity?.hot_paths ?? [];
-  const lastActiveAt = recentCommitsList[0]?.time ?? context?.code_evidence.last_commit?.time ?? null;
+  return {
+    analysis,
+    context,
+    recentActivity,
+    suggestedActions,
+  };
+}
+
+function normalizeDashboardActivity(
+  memory: DashboardMemorySources,
+  signals: DashboardSignals
+): NormalizedDashboardActivity {
+  const milestoneList = signals.analysis?.progress.milestones ?? memory.milestones;
+  const recentCommitsList = signals.analysis?.recent_activity.commits ?? signals.recentActivity?.commits ?? [];
+  const hotPaths = signals.analysis?.recent_activity.hot_paths ?? signals.recentActivity?.hot_paths ?? [];
+  const lastActiveAt = recentCommitsList[0]?.time ?? signals.context?.code_evidence.last_commit?.time ?? null;
   const completedMilestones = milestoneList.filter(milestone => milestone.status === 'completed').length;
 
   return {
-    overview: {
-      project_name: manifest.project_name,
-      summary: manifest.summary,
-      goals: analysis?.goals ?? toGoals(manifest),
-      current_focus: analysis?.current_focus ?? {
-        area: context?.code_evidence.last_commit?.message || 'Recent code activity',
-        confidence: context?.should_run_deep_analysis ? 'mid' : 'low',
-      },
-      overall_completion: analysis?.progress.overall_completion ?? null,
-      confidence: analysis?.confidence ?? 'mid',
+    milestoneList,
+    recentCommitsList,
+    hotPaths,
+    lastActiveAt,
+    completedMilestones,
+  };
+}
+
+function buildDashboardOverview(
+  manifest: Manifest,
+  signals: DashboardSignals
+): DashboardData['overview'] {
+  return {
+    project_name: manifest.project_name,
+    summary: manifest.summary,
+    goals: signals.analysis?.goals ?? toGoals(manifest),
+    current_focus: signals.analysis?.current_focus ?? {
+      area: signals.context?.code_evidence.last_commit?.message || 'Recent code activity',
+      confidence: signals.context?.should_run_deep_analysis ? 'mid' : 'low',
     },
-    activity: {
-      summary: analysis?.recent_activity.activity_summary ?? recentActivity?.summary ?? 'No recent activity available.',
-      recent_commits: recentCommitsList,
-      hot_paths: hotPaths,
-      last_active_at: lastActiveAt,
-      staleness_risk: analysis?.progress.staleness_risk ?? computeStalenessRisk(lastActiveAt),
-    },
-    memory: {
-      long_term: { manifest, project_spec: projectSpec },
-      progress_memory: buildMemorySection('Progress Memory', progressEntries, summarizeProgress(progressEntries), 'No explicit progress entries recorded yet.'),
-      decision_memory: buildMemorySection('Decision Memory', decisions, summarizeDecisions(decisions.length), 'No decisions recorded yet.'),
-      milestone_memory: buildMemorySection('Milestone Memory', milestoneList, summarizeMilestones(milestoneList.length, completedMilestones), 'No milestones inferred or recorded yet.'),
-      note_memory: buildMemorySection('Note Memory', notes, summarizeNotes(notes.length), 'No notes captured yet.'),
-    },
-    next_actions: suggestedActions.next_actions,
+    overall_completion: signals.analysis?.progress.overall_completion ?? null,
+    confidence: signals.analysis?.confidence ?? 'mid',
+  };
+}
+
+function buildDashboardActivitySection(
+  signals: DashboardSignals,
+  normalizedActivity: NormalizedDashboardActivity
+): DashboardData['activity'] {
+  return {
+    summary: signals.analysis?.recent_activity.activity_summary ?? signals.recentActivity?.summary ?? 'No recent activity available.',
+    recent_commits: normalizedActivity.recentCommitsList,
+    hot_paths: normalizedActivity.hotPaths,
+    last_active_at: normalizedActivity.lastActiveAt,
+    staleness_risk: signals.analysis?.progress.staleness_risk ?? computeStalenessRisk(normalizedActivity.lastActiveAt),
+  };
+}
+
+function buildDashboardMemory(
+  manifest: Manifest,
+  memory: DashboardMemorySources,
+  normalizedActivity: NormalizedDashboardActivity
+): DashboardData['memory'] {
+  return {
+    long_term: { manifest, project_spec: memory.projectSpec },
+    progress_memory: buildMemorySection('Progress Memory', memory.progressEntries, summarizeProgress(memory.progressEntries), 'No explicit progress entries recorded yet.'),
+    decision_memory: buildMemorySection('Decision Memory', memory.decisions, summarizeDecisions(memory.decisions.length), 'No decisions recorded yet.'),
+    milestone_memory: buildMemorySection('Milestone Memory', normalizedActivity.milestoneList, summarizeMilestones(normalizedActivity.milestoneList.length, normalizedActivity.completedMilestones), 'No milestones inferred or recorded yet.'),
+    note_memory: buildMemorySection('Note Memory', memory.notes, summarizeNotes(memory.notes.length), 'No notes captured yet.'),
+  };
+}
+
+async function buildFullDashboard(manifest: Manifest, repoPath: string, includeDeepAnalysis: boolean, recentCommits: number, generatedAt: string, storage: StoragePort, git: GitPort): Promise<DashboardData> {
+  const memory = readDashboardMemorySources(repoPath, storage);
+  const signals = await readDashboardSignals(repoPath, includeDeepAnalysis, recentCommits, storage, git);
+  const normalizedActivity = normalizeDashboardActivity(memory, signals);
+
+  return {
+    overview: buildDashboardOverview(manifest, signals),
+    activity: buildDashboardActivitySection(signals, normalizedActivity),
+    memory: buildDashboardMemory(manifest, memory, normalizedActivity),
+    next_actions: signals.suggestedActions.next_actions,
     meta: {
       generated_at: generatedAt,
       repo_path: repoPath,
