@@ -1,23 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { NextAction } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
 import { nextActionSchema, parseJsonText, parseNdjsonText } from './validation.js';
-
-export interface NextAction {
-  id: string;
-  title: string;
-  description: string;
-  priority_score: number;
-  reasoning: string;
-  impact: number;
-  effort: number;
-  confidence: 'low' | 'mid' | 'high';
-  related_milestone?: string;
-  blocking_issues?: string[];
-  suggested_by: string;
-  created_at: string;
-}
 
 const NEXT_ACTIONS_FILE = 'next_actions.ndjson';
 const LEGACY_NEXT_ACTIONS_FILE = 'next_actions.json';

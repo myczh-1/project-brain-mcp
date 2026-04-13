@@ -51,6 +51,26 @@ describe('stdio', () => {
     });
   });
 
+  it('rejects create_change requests that pass schema shape but miss required nested fields', async () => {
+    const handle = vi.fn();
+    const response = await handleStdioLine(
+      JSON.stringify({
+        id: 'req-bad-change',
+        message: { type: 'create_change', input: { repo_path: '/repo', change: { summary: 'missing title' } } },
+      }),
+      handle
+    );
+
+    expect(handle).not.toHaveBeenCalled();
+    expect(response).toMatchObject({
+      id: null,
+      ok: false,
+      error: {
+        message: expect.stringContaining('title'),
+      },
+    });
+  });
+
   it('rejects unsupported runtime message types before dispatch', async () => {
     const handle = vi.fn();
     const response = await handleStdioLine(

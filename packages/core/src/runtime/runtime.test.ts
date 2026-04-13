@@ -66,4 +66,37 @@ describe('runtime', () => {
     expect(service.finishWork).toHaveBeenCalledWith({ repo_path: '/repo', change_id: 'c1' });
     expect(result).toMatchObject({ status: 'ok', change_id: 'c1', final_status: 'done' });
   });
+
+  it('rejects mutating commands without repo_path when no runtime default is configured', async () => {
+    const service = {
+      initializeProject: vi.fn(),
+      defineProjectSpec: vi.fn(),
+      createChange: vi.fn(),
+      updateChange: vi.fn(),
+      logDecision: vi.fn(),
+      captureNote: vi.fn(),
+      recordProgress: vi.fn(),
+      startWork: vi.fn(),
+      checkpointWork: vi.fn(),
+      ingestMemory: vi.fn(),
+      finishWork: vi.fn(),
+      getDashboard: vi.fn(),
+      getProjectContext: vi.fn(),
+      getChangeContext: vi.fn(),
+      listModules: vi.fn(),
+      getModuleContext: vi.fn(),
+      getContextBudgetPlan: vi.fn(),
+      getRecentActivity: vi.fn(),
+      analyze: vi.fn(),
+      getState: vi.fn(),
+    } as unknown as RuntimeService;
+
+    const runtime = createRuntime({} as StoragePort, {} as GitPort, undefined, service);
+
+    await expect(runtime.handle({
+      type: 'create_change',
+      input: { repo_path: '', change: { title: 'demo', summary: 'demo' } },
+    })).rejects.toThrow(/repo_path is required/i);
+    expect(service.createChange).not.toHaveBeenCalled();
+  });
 });

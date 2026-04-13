@@ -1,4 +1,4 @@
-import type { StoragePort } from '../../core/src/ports/storage.js';
+import type { StoragePort } from '@myczh/project-brain/core';
 import {
   changeExists,
   ensureChangesDir,

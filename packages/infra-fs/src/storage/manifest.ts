@@ -1,20 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Manifest } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
 import { getRepoRootPath } from './repoRoot.js';
 import { manifestFileSchema, parseJsonText } from './validation.js';
-
-export interface Manifest {
-  project_name: string;
-  summary: string;
-  repo_type: string;
-  primary_stack: string[];
-  long_term_goal?: string;
-  locale?: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export function buildFallbackManifest(cwd?: string): Manifest {
   const repoRoot = getRepoRootPath(cwd);

@@ -1,18 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { ProgressEntry } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { legacyProgressEntrySchema, parseJsonText, parseNdjsonText, progressEntrySchema } from './validation.js';
-
-export interface ProgressEntry {
-  id: string;
-  date: string;
-  summary: string;
-  status?: 'planned' | 'in_progress' | 'blocked' | 'done';
-  blockers?: string[];
-  related_change_id?: string;
-  module_ids: string[];
-  confidence: 'low' | 'mid' | 'high';
-}
 
 const PROGRESS_FILE = 'progress.ndjson';
 

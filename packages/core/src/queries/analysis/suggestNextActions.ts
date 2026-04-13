@@ -1,6 +1,7 @@
 import type { GitPort } from '../../ports/git.js';
 import type { StoragePort } from '../../ports/storage.js';
 import { inferMilestoneSignals, recommendNextActions, type ActionRecommendation } from '../../understanding/index.js';
+import { mergeInferredMilestones } from './inferredMilestones.js';
 
 export interface SuggestNextActionsInput {
   limit?: number;
@@ -19,16 +20,13 @@ export async function suggestNextActionsTool(input: SuggestNextActionsInput, sto
   const limit = input.limit || 5;
   const recentCommitsCount = input.recent_commits || 50;
 
-  let milestones = storage.readMilestones(cwd);
+  const persistedMilestones = storage.readMilestones(cwd);
   const progress = storage.readProgress(cwd);
   const decisions = storage.readDecisions(cwd);
   const commits = git.parseLog(recentCommitsCount, cwd);
   const hotPaths = git.calculateHotPaths(commits);
   const inferredSignals = inferMilestoneSignals(commits, hotPaths);
-
-  if (inferredSignals.length > 0) {
-    milestones = storage.upsertInferredMilestones(inferredSignals, cwd);
-  }
+  const milestones = mergeInferredMilestones(persistedMilestones, inferredSignals);
 
   const recommendations = recommendNextActions(milestones, commits, hotPaths, progress, decisions);
   const filteredActions = input.filter_by_milestone

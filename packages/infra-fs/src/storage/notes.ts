@@ -1,16 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Note } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { noteSchema, parseNdjsonText } from './validation.js';
-
-export interface Note {
-  id: string;
-  time: string;
-  tags: string[];
-  note: string;
-  related_change_id?: string;
-  module_ids: string[];
-}
 
 const NOTES_FILE = 'notes.ndjson';
 
@@ -36,5 +28,5 @@ export function appendNote(note: Note, cwd?: string): void {
 }
 
 export function generateNoteId(): string {
-  return `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `note_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }

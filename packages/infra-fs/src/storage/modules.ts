@@ -1,19 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { ModuleRecord } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
 import { parseJsonText, moduleSchema } from './validation.js';
-
-export interface ModuleRecord {
-  id: string;
-  name: string;
-  summary: string;
-  aliases: string[];
-  key_paths: string[];
-  created_at: string;
-  updated_at: string;
-  last_used_at: string;
-}
 
 const MODULES_FILE = 'modules.json';
 

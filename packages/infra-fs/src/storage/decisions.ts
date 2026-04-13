@@ -1,20 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Decision } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { decisionSchema, legacyDecisionSchema, parseJsonText, parseNdjsonText } from './validation.js';
-
-export interface Decision {
-  id: string;
-  title: string;
-  decision: string;
-  rationale: string;
-  alternatives_considered: string[];
-  scope: 'project' | 'change' | 'module';
-  related_change_id?: string;
-  module_ids: string[];
-  supersedes?: string;
-  created_at: string;
-}
 
 const DECISIONS_FILE = 'decisions.ndjson';
 

@@ -1,26 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { ChangeSpec } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
 import { changeSpecSchema, parseJsonText } from './validation.js';
-
-export type ChangeStatus = 'proposed' | 'active' | 'done' | 'dropped';
-
-export interface ChangeSpec {
-  id: string;
-  title: string;
-  summary: string;
-  status: ChangeStatus;
-  goals: string[];
-  non_goals: string[];
-  constraints: string[];
-  acceptance_criteria: string[];
-  affected_areas: string[];
-  module_ids: string[];
-  related_decision_ids: string[];
-  created_at: string;
-  updated_at: string;
-}
 
 function getChangesDir(cwd?: string): string {
   return path.join(getBrainDir(cwd), 'changes');

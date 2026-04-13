@@ -42,42 +42,33 @@ import type {
   FinishWorkOutput as QueryFinishWorkOutput,
 } from '../queries/index.js';
 import type { RuntimeStateSnapshot } from './service.js';
+import { getStateSchema, runtimeInputSchemas } from './inputSchemas.js';
 
-const runtimeInputSchema = z.record(z.string(), z.unknown());
-
-const runtimeInputMessageTypes = [
-  'initialize_project',
-  'define_project_spec',
-  'create_change',
-  'update_change',
-  'log_decision',
-  'capture_note',
-  'record_progress',
-  'start_work',
-  'checkpoint_work',
-  'ingest_memory',
-  'finish_work',
-  'get_dashboard',
-  'get_project_context',
-  'get_change_context',
-  'list_modules',
-  'get_module_context',
-  'get_context_budget_plan',
-  'get_recent_activity',
-  'analyze',
+const runtimeInputMessageSchemas = [
+  z.object({ type: z.literal('initialize_project'), input: runtimeInputSchemas.initialize_project }).strict(),
+  z.object({ type: z.literal('define_project_spec'), input: runtimeInputSchemas.define_project_spec }).strict(),
+  z.object({ type: z.literal('create_change'), input: runtimeInputSchemas.create_change }).strict(),
+  z.object({ type: z.literal('update_change'), input: runtimeInputSchemas.update_change }).strict(),
+  z.object({ type: z.literal('log_decision'), input: runtimeInputSchemas.log_decision }).strict(),
+  z.object({ type: z.literal('capture_note'), input: runtimeInputSchemas.capture_note }).strict(),
+  z.object({ type: z.literal('record_progress'), input: runtimeInputSchemas.record_progress }).strict(),
+  z.object({ type: z.literal('start_work'), input: runtimeInputSchemas.start_work }).strict(),
+  z.object({ type: z.literal('checkpoint_work'), input: runtimeInputSchemas.checkpoint_work }).strict(),
+  z.object({ type: z.literal('ingest_memory'), input: runtimeInputSchemas.ingest_memory }).strict(),
+  z.object({ type: z.literal('finish_work'), input: runtimeInputSchemas.finish_work }).strict(),
+  z.object({ type: z.literal('get_dashboard'), input: runtimeInputSchemas.get_dashboard }).strict(),
+  z.object({ type: z.literal('get_project_context'), input: runtimeInputSchemas.get_project_context }).strict(),
+  z.object({ type: z.literal('get_change_context'), input: runtimeInputSchemas.get_change_context }).strict(),
+  z.object({ type: z.literal('list_modules'), input: runtimeInputSchemas.list_modules }).strict(),
+  z.object({ type: z.literal('get_module_context'), input: runtimeInputSchemas.get_module_context }).strict(),
+  z.object({ type: z.literal('get_context_budget_plan'), input: runtimeInputSchemas.get_context_budget_plan }).strict(),
+  z.object({ type: z.literal('get_recent_activity'), input: runtimeInputSchemas.get_recent_activity }).strict(),
+  z.object({ type: z.literal('analyze'), input: runtimeInputSchemas.analyze }).strict(),
 ] as const;
 
-const runtimeInputMessageSchema = z.object({
-  type: z.enum(runtimeInputMessageTypes),
-  input: runtimeInputSchema,
-});
+const runtimeInputMessageSchema = z.union(runtimeInputMessageSchemas);
 
-const getStateMessageSchema = z.object({
-  type: z.literal('get_state'),
-  repo_path: z.string().optional().default(''),
-});
-
-export const runtimeMessageSchema = z.union([runtimeInputMessageSchema, getStateMessageSchema]);
+export const runtimeMessageSchema = z.union([runtimeInputMessageSchema, getStateSchema]);
 
 export type RuntimeCommand =
   | { type: 'initialize_project'; input: ProjectInitInput }
@@ -138,5 +129,5 @@ export type RuntimeQueryResult =
 export type RuntimeMessageResult = RuntimeCommandResult | RuntimeQueryResult;
 
 export function parseRuntimeMessage(value: unknown): RuntimeMessage {
-  return runtimeMessageSchema.parse(value) as RuntimeMessage;
+  return runtimeMessageSchema.parse(value);
 }

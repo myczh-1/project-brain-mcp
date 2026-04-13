@@ -1,19 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Milestone } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
 import { milestoneSchema, parseJsonText } from './validation.js';
 
-export interface Milestone {
-  name: string;
-  status: 'not_started' | 'in_progress' | 'completed';
-  confidence?: 'low' | 'mid' | 'high';
-  completion?: 'low' | 'mid' | 'high';
-  detected_at?: string;
-  last_updated?: string;
-}
-
-type Confidence = 'low' | 'mid' | 'high';
+type Confidence = NonNullable<Milestone['confidence']>;
 
 interface InferredMilestoneSignal {
   name: string;

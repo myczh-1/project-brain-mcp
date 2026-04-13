@@ -1,5 +1,5 @@
 import type { GitPort } from '../../ports/git.js';
-import type { Manifest, StoragePort } from '../../ports/storage.js';
+import type { StoragePort } from '../../ports/storage.js';
 import type { Completion, Momentum, StalenessRisk } from '../../understanding/estimateProgress.js';
 import {
   estimateProgressOverview,
@@ -9,6 +9,7 @@ import {
 } from '../../understanding/index.js';
 import type { Commit, HotPath } from '../../ports/git.js';
 import type { Milestone, NextAction } from '../../ports/storage.js';
+import { mergeInferredMilestones } from './inferredMilestones.js';
 
 export interface BrainAnalyzeInput {
   repo_path: string;
@@ -49,11 +50,7 @@ export async function brainAnalyze(input: BrainAnalyzeInput, storage: StoragePor
   const hotPaths = git.calculateHotPaths(commits);
   const focus = inferFocus(commits, hotPaths);
   const milestoneSignals = inferMilestoneSignals(commits, hotPaths);
-
-  let milestones = storage.readMilestones(cwd);
-  if (milestoneSignals.length > 0) {
-    milestones = storage.upsertInferredMilestones(milestoneSignals, cwd);
-  }
+  const milestones = mergeInferredMilestones(storage.readMilestones(cwd), milestoneSignals);
 
   const progressOverview = estimateProgressOverview(milestones, commits);
   const progress = storage.readProgress(cwd);

@@ -1,18 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { ProjectSpec } from '@myczh/project-brain/core';
 import { ensureBrainDir, getBrainDir } from './brainDir.js';
 import { atomicWriteFile } from './fileOps.js';
 import { parseJsonText, projectSpecSchema } from './validation.js';
-
-export interface ProjectSpec {
-  product_goal: string;
-  non_goals: string[];
-  architecture_rules: string[];
-  coding_rules: string[];
-  agent_rules: string[];
-  source: string;
-  updated_at: string;
-}
 
 const PROJECT_SPEC_FILE = 'project-spec.json';
 
