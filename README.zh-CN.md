@@ -1,11 +1,12 @@
 # Project Brain
-为 AI 辅助开发提供持久化项目记忆。
+本地 MCP 记忆服务器，为 AI 辅助开发提供持久化项目记忆。
 
 ## 功能介绍
 
+- Project Brain 通过 `project-brain stdio` 作为本地 MCP Server 运行。
 - 为 AI 辅助开发循环提供持久化项目记忆机制。
 - 在 `.project-brain/` 目录下存储项目上下文、变更（changes）、决策（decisions）和进度（progress）。
-- 使用基于文件的轻量工作流，AI 工具直接读写 `.project-brain/`。
+- AI 助手应通过 MCP 工具访问这些记忆，而不是直接编辑 `.project-brain/` 文件。
 
 ## 实际体验
 
@@ -24,6 +25,7 @@
 Please install Project Brain in this repository by following https://github.com/myczh-1/project-brain/docs/install.md.
 Use Chinese when communicating with the user.
 Configure Project Brain through `project-brain stdio`.
+Configure Project Brain as a local MCP server through `project-brain stdio`.
 Do not edit `.project-brain/` files directly.
 Explain which files you plan to modify before editing them.
 ```
@@ -45,10 +47,10 @@ Explain which files you plan to modify before editing them.
 
 安装完成后，AI 助手会：
 
-- 通过 `project-brain stdio` 调用 Project Brain 工具接口。
+- 连接到 `project-brain stdio` 暴露的本地 MCP Server。
 - 在存在 `AGENTS.md` 时遵循仓库级的使用说明。
 - 在需要项目记忆或任务上下文时读取 Project Brain。
-- 通过 stdio 工具更新 Project Brain，而不是直接编辑 `.project-brain/` 文件。
+- 通过 MCP 工具更新 Project Brain，而不是直接编辑 `.project-brain/` 文件。
 
 详细工作流说明请参阅 [docs/guide-openspec-integration.zh-CN.md](./docs/guide-openspec-integration.zh-CN.md)。
 

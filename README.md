@@ -1,12 +1,13 @@
 # Project Brain
 
-Durable project memory for AI-assisted development.
+Local MCP memory server for AI-assisted development.
 
-## What It Does
+## What It Is
 
-- Provides a durable project memory mechanism for AI-assisted development loops.
-- Stores project context, changes, decisions, and progress in the `.project-brain/` directory.
-- Uses a lightweight file-based workflow where AI tools read and write `.project-brain/` directly.
+- Project Brain runs as a local MCP server via `project-brain stdio`.
+- It gives your AI assistant durable project memory across coding sessions.
+- It stores project context, changes, decisions, and progress under `.project-brain/`.
+- The assistant should access memory through MCP tools, not by editing `.project-brain/` files directly.
 
 ## In Practice
 
@@ -23,7 +24,7 @@ Copy the text below into your AI assistant and let it complete the installation:
 
 ```text
 Please install Project Brain in this repository by following https://github.com/myczh-1/project-brain/docs/install.md.
-Configure Project Brain through `project-brain stdio`.
+Configure Project Brain as a local MCP server through `project-brain stdio`.
 Do not edit `.project-brain/` files directly.
 Explain which files you plan to modify before editing them.
 ```
@@ -42,10 +43,10 @@ Or, if you prefer, you can follow the docs and install it manually.
 
 Once installed, your AI assistant will:
 
-- call Project Brain through `project-brain stdio`,
+- connect to the local MCP server exposed by `project-brain stdio`,
 - follow repository-local instructions from `AGENTS.md` when present,
 - read Project Brain when it needs project memory or task context,
-- and update Project Brain through the stdio tools instead of editing `.project-brain/` files directly.
+- and update Project Brain through MCP tools instead of editing `.project-brain/` files directly.
 
 For the full workflow, see [docs/guide-openspec-integration.md](./docs/guide-openspec-integration.md).
 
